@@ -1,13 +1,16 @@
 {
   "name": "@distube/ytdl-core",
-  "description": "DisTube fork of ytdl-core. YouTube video downloader in pure javascript.",
+  "description": "YouTube video downloader — yt-dlp-inspired TypeScript core with ytdl-core compatibility layer.",
   "keywords": [
     "youtube",
     "video",
     "download",
-    "distube"
+    "yt-dlp",
+    "ytdl",
+    "distube",
+    "cloudflare"
   ],
-  "version": "4.16.12",
+  "version": "5.0.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/distubejs/ytdl-core.git"
@@ -23,31 +26,65 @@
     "Pawel Rucinski (https://github.com/Roki100)",
     "Alexander Paolini (https://github.com/Million900o)"
   ],
-  "main": "./lib/index.js",
-  "types": "./typings/index.d.ts",
+  "packageManager": "pnpm@10.20.0",
+  "main": "./lib/compat/ytdl-core.js",
+  "types": "./lib/compat/ytdl-core.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/compat/ytdl-core.d.ts",
+      "require": "./lib/compat/ytdl-core.js",
+      "default": "./lib/compat/ytdl-core.js"
+    },
+    "./core": {
+      "types": "./lib/index.d.ts",
+      "require": "./lib/index.js",
+      "default": "./lib/index.js"
+    },
+    "./web": {
+      "types": "./lib/web/server.d.ts",
+      "require": "./lib/web/server.js",
+      "default": "./lib/web/server.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "ytdl-web": "./scripts/ytdl-web.js"
+  },
   "files": [
     "lib",
-    "typings"
+    "web",
+    "scripts/ytdl-web.js",
+    "scripts/copy-vendor.js",
+    "src/extractor/youtube/jsc/vendor",
+    "docs"
   ],
   "scripts": {
-    "prettier": "prettier --write \"**/*.{js,json,yml,md,ts}\""
+    "build": "tsc && node scripts/copy-vendor.js",
+    "typecheck": "tsc --noEmit",
+    "test:extract": "node scripts/smoke-extract.js",
+    "test": "node --test test/extractors/suitable.test.js",
+    "test:live": "YTDL_LIVE_TEST=1 node --test test/extractors/smoke-live.test.js",
+    "web": "node scripts/ytdl-web.js",
+    "prettier": "prettier --write \"**/*.{js,json,yml,md,ts,css,html}\"",
+    "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "http-cookie-agent": "^7.0.1",
-    "https-proxy-agent": "^7.0.6",
+    "http-cookie-agent": "^8.0.0",
     "m3u8stream": "^0.8.6",
-    "miniget": "^4.2.3",
-    "sax": "^1.4.1",
-    "tough-cookie": "^5.1.2",
-    "undici": "^7.8.0"
+    "tough-cookie": "^6.0.2",
+    "undici": "^8.7.0"
+  },
+  "optionalDependencies": {
+    "cycletls": "^2.0.5"
   },
   "devDependencies": {
-    "@types/node": "^22.15.2",
-    "prettier": "^3.5.3",
-    "typescript": "^5.8.3"
+    "@types/node": "^22.19.21",
+    "prettier": "^3.9.5",
+    "typescript": "^5.9.3"
   },
   "engines": {
-    "node": ">=20.18.1"
+    "node": ">=22.19.0",
+    "pnpm": ">=10"
   },
   "license": "MIT",
   "funding": "https://github.com/distubejs/ytdl-core?sponsor"

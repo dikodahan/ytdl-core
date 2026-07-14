@@ -5,3 +5,8 @@ coverage
 .idea/*
 yarn.lock
 package-lock.json
+npm-shrinkwrap.json
+*.tsbuildinfo
+legacy/
+data/
+.ytdl-core/

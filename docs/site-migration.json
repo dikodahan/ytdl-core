@@ -1,0 +1,130 @@
+{
+  "upstreamPin": "2026.07.04",
+  "depth": "vlc-video",
+  "youtube": {
+    "id": "youtube",
+    "status": "ready",
+    "ies": ["YoutubeIE"]
+  },
+  "batches": [
+    {
+      "id": 0,
+      "title": "Embed platforms",
+      "status": "complete",
+      "modules": [
+        { "id": "brightcove", "status": "ready", "ies": ["BrightcoveIE"] },
+        { "id": "jwplatform", "status": "ready", "ies": ["JWPlatformIE"] },
+        { "id": "wistia", "status": "ready", "ies": ["WistiaIE"] },
+        { "id": "kaltura", "status": "ready", "ies": ["KalturaIE"] },
+        { "id": "anvato", "status": "ready", "ies": ["AnvatoIE"] },
+        { "id": "theplatform", "status": "ready", "ies": ["ThePlatformIE"] },
+        { "id": "cloudflarestream", "status": "ready", "ies": ["CloudflareStreamIE"] },
+        { "id": "bunnycdn", "status": "ready", "ies": ["BunnyCdnIE"] },
+        { "id": "bitmovin", "status": "ready", "ies": ["BitmovinIE"] },
+        { "id": "voxmedia", "status": "ready", "ies": ["VoxMediaIE"] }
+      ]
+    },
+    {
+      "id": 1,
+      "title": "Global platforms",
+      "status": "complete",
+      "modules": [
+        { "id": "vimeo", "status": "ready", "ies": ["VimeoIE"] },
+        { "id": "twitch", "status": "ready", "ies": ["TwitchIE"] },
+        { "id": "tiktok", "status": "ready", "ies": ["TiktokIE"] },
+        { "id": "twitter", "status": "ready", "ies": ["TwitterIE"] },
+        { "id": "instagram", "status": "ready", "ies": ["InstagramIE"] },
+        { "id": "facebook", "status": "ready", "ies": ["FacebookIE"] },
+        { "id": "reddit", "status": "ready", "ies": ["RedditIE"] },
+        { "id": "soundcloud", "status": "ready", "ies": ["SoundcloudIE"] },
+        { "id": "dailymotion", "status": "ready", "ies": ["DailymotionIE"] },
+        { "id": "bilibili", "status": "ready", "ies": ["BilibiliIE"] }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Social / UGC / alt video",
+      "status": "complete",
+      "modules": [
+        { "id": "bandcamp", "status": "ready", "ies": ["BandcampIE"] },
+        { "id": "rumble", "status": "ready", "ies": ["RumbleIE"] },
+        { "id": "kick", "status": "ready", "ies": ["KickIE"] },
+        { "id": "patreon", "status": "ready", "ies": ["PatreonIE"] },
+        { "id": "bluesky", "status": "ready", "ies": ["BlueskyIE"] },
+        { "id": "bitchute", "status": "ready", "ies": ["BitchuteIE"] },
+        { "id": "newgrounds", "status": "ready", "ies": ["NewgroundsIE"] },
+        { "id": "ninegag", "status": "ready", "ies": ["NinegagIE"] },
+        { "id": "coub", "status": "ready", "ies": ["CoubIE"] },
+        { "id": "peertube", "status": "ready", "ies": ["PeertubeIE"] }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Regional APIs",
+      "status": "complete",
+      "modules": [
+        { "id": "niconico", "status": "ready", "ies": ["NiconicoIE"] },
+        { "id": "afreecatv", "status": "ready", "ies": ["AfreecaTVIE"] },
+        { "id": "naver", "status": "ready", "ies": ["NaverIE"] },
+        { "id": "iqiyi", "status": "ready", "ies": ["IqiyiIE"] },
+        { "id": "youku", "status": "ready", "ies": ["YoukuIE"] },
+        { "id": "fc2", "status": "ready", "ies": ["FC2IE"] },
+        { "id": "weibo", "status": "ready", "ies": ["WeiboIE"] },
+        { "id": "xiaohongshu", "status": "ready", "ies": ["XiaoHongShuIE"] },
+        { "id": "vk", "status": "ready", "ies": ["VKIE"] },
+        { "id": "odnoklassniki", "status": "ready", "ies": ["OdnoklassnikiIE"] }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Audio / podcasts",
+      "status": "complete",
+      "modules": [
+        { "id": "audiomack", "status": "ready", "ies": ["AudiomackIE"] },
+        { "id": "applepodcasts", "status": "ready", "ies": ["ApplePodcastsIE"] },
+        { "id": "mixcloud", "status": "ready", "ies": ["MixcloudIE"] },
+        { "id": "soundgasm", "status": "ready", "ies": ["SoundgasmIE"] },
+        { "id": "acast", "status": "ready", "ies": ["ACastIE"] },
+        { "id": "art19", "status": "ready", "ies": ["Art19IE"] },
+        { "id": "yandexmusic", "status": "ready", "ies": ["YandexMusicIE"] },
+        { "id": "audius", "status": "ready", "ies": ["AudiusIE"] },
+        { "id": "bandlab", "status": "ready", "ies": ["BandlabIE"] },
+        { "id": "reverbnation", "status": "ready", "ies": ["ReverbNationIE"] }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "News / public broadcasters",
+      "status": "pending",
+      "modules": [
+        { "id": "archiveorg", "status": "pending", "ies": ["ArchiveOrgIE"] },
+        { "id": "bbc", "status": "pending", "ies": ["BBCIE"] },
+        { "id": "ard", "status": "pending", "ies": ["ARDMediathekIE"] },
+        { "id": "arte", "status": "pending", "ies": ["ArteTVIE"] },
+        { "id": "pbs", "status": "pending", "ies": ["PBSIE"] },
+        { "id": "cnn", "status": "pending", "ies": ["CNNIE"] },
+        { "id": "nbc", "status": "pending", "ies": ["NBCIE"] },
+        { "id": "abc", "status": "pending", "ies": ["ABCIE"] },
+        { "id": "bloomberg", "status": "pending", "ies": ["BloombergIE"] },
+        { "id": "reuters", "status": "pending", "ies": ["ReutersIE"] }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Hosts / short clips",
+      "status": "pending",
+      "modules": [
+        { "id": "googledrive", "status": "pending", "ies": ["GoogleDriveIE"] },
+        { "id": "dropbox", "status": "pending", "ies": ["DropboxIE"] },
+        { "id": "imgur", "status": "pending", "ies": ["ImgurIE"] },
+        { "id": "redgifs", "status": "pending", "ies": ["RedGifsIE"] },
+        { "id": "streamable", "status": "pending", "ies": ["StreamableIE"] },
+        { "id": "box", "status": "pending", "ies": ["BoxIE"] },
+        { "id": "yandexdisk", "status": "pending", "ies": ["YandexDiskIE"] },
+        { "id": "mediafire", "status": "pending", "ies": ["MediaFireIE"] },
+        { "id": "pixeldrain", "status": "pending", "ies": ["PixeldrainIE"] },
+        { "id": "streamja", "status": "pending", "ies": ["StreamjaIE"] }
+      ]
+    }
+  ]
+}

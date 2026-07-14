@@ -1,222 +1,159 @@
 # @distube/ytdl-core
 
-> [!IMPORTANT]
-> [@distube/youtube](https://github.com/distubejs/extractor-plugins) depends on [youtubei.js](https://github.com/LuanRT/YouTube.js) from now on.\
-> This fork will be no longer maintained. Please use alternatives (e.g. [youtubei.js](https://github.com/LuanRT/YouTube.js)) instead.
+YouTube video info / download library with a **yt-dlp-inspired TypeScript core**, **Cloudflare/TLS impersonation**, a **local web UI**, and a **ytdl-core compatibility layer**.
 
-DisTube fork of `ytdl-core`. This fork is dedicated to fixing bugs and adding features that are not merged into the original repo as soon as possible.
-
-<a href='https://ko-fi.com/skick' target='_blank'><img height='48' src='https://storage.ko-fi.com/cdn/kofi3.png' alt='Buy Me a Coffee at ko-fi.com' /></a>
-
-## Installation
+## Install
 
 ```bash
-npm install @distube/ytdl-core@latest
+pnpm add @distube/ytdl-core@latest
 ```
 
-Make sure you're installing the latest version of `@distube/ytdl-core` to keep up with the latest fixes.
+Requires **Node.js ≥ 22.19** and **pnpm** (this repo is pnpm-only).
 
-## Usage
+For full Cloudflare TLS/JA3 bypass, also install the optional CycleTLS dependency:
 
-```js
-const ytdl = require("@distube/ytdl-core");
-// TypeScript: import ytdl from '@distube/ytdl-core'; with --esModuleInterop
-// TypeScript: import * as ytdl from '@distube/ytdl-core'; with --allowSyntheticDefaultImports
-// TypeScript: import ytdl = require('@distube/ytdl-core'); with neither of the above
-
-// Download a video
-ytdl("http://www.youtube.com/watch?v=aqz-KE-bpKQ").pipe(require("fs").createWriteStream("video.mp4"));
-
-// Get video info
-ytdl.getBasicInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ").then(info => {
-  console.log(info.videoDetails.title);
-});
-
-// Get video info with download formats
-ytdl.getInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ").then(info => {
-  console.log(info.formats);
-});
+```bash
+pnpm add cycletls
 ```
 
-### Cookies Support
+## Quick start (compat API)
 
 ```js
 const ytdl = require("@distube/ytdl-core");
 
-// (Optional) Below are examples, NOT the recommended options
-const cookies = [
-  { name: "cookie1", value: "COOKIE1_HERE" },
-  { name: "cookie2", value: "COOKIE2_HERE" },
-];
+ytdl("https://www.youtube.com/watch?v=aqz-KE-bpKQ").pipe(
+  require("fs").createWriteStream("video.mp4"),
+);
 
-// (Optional) http-cookie-agent / undici agent options
-// Below are examples, NOT the recommended options
-const agentOptions = {
-  pipelining: 5,
-  maxRedirections: 0,
-  localAddress: "127.0.0.1",
-};
-
-// agent should be created once if you don't want to change your cookie
-const agent = ytdl.createAgent(cookies, agentOptions);
-
-ytdl.getBasicInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", { agent });
-ytdl.getInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", { agent });
+const info = await ytdl.getInfo("aqz-KE-bpKQ");
+console.log(info.videoDetails.title, info.formats.length);
 ```
 
-#### How to get cookies
-
-- Install [EditThisCookie](http://www.editthiscookie.com/) extension for your browser.
-- Go to [YouTube](https://www.youtube.com/).
-- Log in to your account. (You should use a new account for this purpose)
-- Click on the extension icon and click "Export" icon.
-- Your cookies will be added to your clipboard and paste it into your code.
-
-> [!WARNING]
-> Don't logout it by clicking logout button on youtube/google account manager, it will expire your cookies.
-> You can delete your browser's cookies to log it out on your browser.
-> Or use incognito mode to get your cookies then close it.
-
-> [!WARNING]
-> Paste all the cookies array from clipboard into `createAgent` function. Don't remove/edit any cookies if you don't know what you're doing.
-
-> [!WARNING]
-> Make sure your account, which logged in when you getting your cookies, use 1 IP at the same time only. It will make your cookies alive longer.
+### Cookies / proxy
 
 ```js
-const ytdl = require("@distube/ytdl-core");
 const agent = ytdl.createAgent([
-  {
-    domain: ".youtube.com",
-    expirationDate: 1234567890,
-    hostOnly: false,
-    httpOnly: true,
-    name: "---xxx---",
-    path: "/",
-    sameSite: "no_restriction",
-    secure: true,
-    session: false,
-    value: "---xxx---",
-  },
-  {
-    "...": "...",
-  },
+  { name: "LOGIN_INFO", value: "..." },
 ]);
+await ytdl.getInfo(url, { agent });
 ```
 
-- Or you can paste your cookies array into a file and use `fs.readFileSync` to read it.
+### PO tokens
+
+Many formats need a Proof-of-Origin (PO) token (same issue yt-dlp hits). Supply manual tokens:
 
 ```js
-const ytdl = require("@distube/ytdl-core");
-const fs = require("fs");
-const agent = ytdl.createAgent(JSON.parse(fs.readFileSync("cookies.json")));
-```
-
-### Proxy Support
-
-```js
-const ytdl = require("@distube/ytdl-core");
-
-const agent = ytdl.createProxyAgent({ uri: "my.proxy.server" });
-
-ytdl.getBasicInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", { agent });
-ytdl.getInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", { agent });
-```
-
-Use both proxy and cookies:
-
-```js
-const ytdl = require("@distube/ytdl-core");
-
-const agent = ytdl.createProxyAgent({ uri: "my.proxy.server" }, [{ name: "cookie", value: "COOKIE_HERE" }]);
-
-ytdl.getBasicInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", { agent });
-ytdl.getInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", { agent });
-```
-
-### IP Rotation
-
-_Built-in ip rotation (`getRandomIPv6`) won't be updated and will be removed in the future, create your own ip rotation instead._
-
-To implement IP rotation, you need to assign the desired IP address to the `localAddress` property within `undici.Agent.Options`.
-Therefore, you'll need to use a different `ytdl.Agent` for each IP address you want to use.
-
-```js
-const ytdl = require("@distube/ytdl-core");
-const { getRandomIPv6 } = require("@distube/ytdl-core/lib/utils");
-
-const agentForARandomIP = ytdl.createAgent(undefined, {
-  localAddress: getRandomIPv6("2001:2::/48"),
+await ytdl.getInfo(url, {
+  poTokens: ["web.gvs+TOKEN", "web.player+TOKEN"],
+  playerClients: ["WEB", "ANDROID"],
 });
+```
 
-ytdl.getBasicInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", { agent: agentForARandomIP });
+See [docs/yt-dlp-sync.md](docs/yt-dlp-sync.md).
 
-const agentForAnotherRandomIP = ytdl.createAgent(undefined, {
-  localAddress: getRandomIPv6("2001:2::/48"),
+## New core API
+
+```js
+const { YoutubeDL, extractInfo } = require("@distube/ytdl-core/core");
+
+const info = await extractInfo("aqz-KE-bpKQ", {
+  vlcOnly: true, // progressive muxed / HLS for local VLC (default)
+  cloudflareBypass: true,
 });
+// Prefer info.formats[0] (sorted for VLC) — open the URL in VLC: Media → Open Network Stream
 
-ytdl.getInfo("http://www.youtube.com/watch?v=aqz-KE-bpKQ", { agent: agentForAnotherRandomIP });
+const ydl = new YoutubeDL({ format: "best" });
+ydl.download(url).pipe(fs.createWriteStream("out.mp4"));
 ```
 
-## API
+## Cloudflare / TLS impersonation
 
-You can find the API documentation in the [original repo](https://github.com/fent/node-ytdl-core#api). Except a few changes:
+Bot management often scores Undici/OpenSSL JA3 fingerprints. With optional **CycleTLS**:
 
-### `ytdl.getInfoOptions`
+| Param | Effect |
+|-------|--------|
+| `impersonate: "chrome" \| …` | Browser-like headers (profile for CF retries) |
+| `cloudflareBypass: true` | If Undici hits a CF challenge page, retry that request via CycleTLS |
+| `forceImpersonate: true` | Send **all** traffic through CycleTLS (stronger; can break YouTube Innertube) |
 
-- `requestOptions` is now `undici`'s [`RequestOptions`](https://github.com/nodejs/undici#undicirequesturl-options-promise).
-- `agent`: [`ytdl.Agent`](https://github.com/distubejs/ytdl-core/blob/master/typings/index.d.ts#L10-L14)
-- `playerClients`: An array of player clients to use. Accepts `WEB`, `WEB_EMBEDDED`, `TV`, `IOS`, and `ANDROID`. Defaults to `["WEB_EMBEDDED", "IOS", "ANDROID","TV"]`.
-- `fetch`: Custom fetch implementation. Defaults to `undici`'s request.
+Default extraction keeps Undici (best for YouTube). Enable `cloudflareBypass` for challenge retries. Without `cycletls`, only header spoofing applies. JS/Turnstile still needs cookies or a real browser.
 
-### `ytdl.createAgent([cookies]): ytdl.Agent`
+## Web UI & HTTP API
 
-`cookies`: an array of json cookies exported with [EditThisCookie](http://www.editthiscookie.com/).
-
-### `ytdl.createProxyAgent(proxy[, cookies]): ytdl.Agent`
-
-`proxy`: [`ProxyAgentOptions`](https://github.com/nodejs/undici/blob/main/docs/api/ProxyAgent.md#parameter-proxyagentoptions) contains your proxy server information.
-
-#### How to implement `ytdl.Agent` with your own Dispatcher
-
-You can find the example [here](https://github.com/distubejs/ytdl-core/blob/master/lib/cookie.js#L73-L86)
-
-## Limitations
-
-ytdl cannot download videos that fall into the following
-
-- Regionally restricted (requires a [proxy](#proxy-support))
-- Private (if you have access, requires [cookies](#cookies-support))
-- Rentals (if you have access, requires [cookies](#cookies-support))
-- YouTube Premium content (if you have access, requires [cookies](#cookies-support))
-- Only [HLS Livestreams](https://en.wikipedia.org/wiki/HTTP_Live_Streaming) are currently supported. Other formats will get filtered out in ytdl.chooseFormats
-
-Generated download links are valid for 6 hours, and may only be downloadable from the same IP address.
-
-## Rate Limiting
-
-When doing too many requests YouTube might block. This will result in your requests getting denied with HTTP-StatusCode 429. The following steps might help you:
-
-- Update `@distube/ytdl-core` to the latest version
-- Use proxies (you can find an example [here](#proxy-support))
-- Extend the Proxy Idea by rotating (IPv6-)Addresses
-  - read [this](https://github.com/fent/node-ytdl-core#how-does-using-an-ipv6-block-help) for more information about this
-- Use cookies (you can find an example [here](#cookies-support))
-  - for this to take effect you have to FIRST wait for the current rate limit to expire
-- Wait it out (it usually goes away within a few days)
-
-## Update Checks
-
-The issue of using an outdated version of ytdl-core became so prevalent, that ytdl-core now checks for updates at run time, and every 12 hours. If it finds an update, it will print a warning to the console advising you to update. Due to the nature of this library, it is important to always use the latest version as YouTube continues to update.
-
-If you'd like to disable this update check, you can do so by providing the `YTDL_NO_UPDATE` env variable.
-
-```
-env YTDL_NO_UPDATE=1 node myapp.js
+```bash
+pnpm run build
+pnpm run web
+# UI:       http://127.0.0.1:8787
+# Settings: http://127.0.0.1:8787/settings.html
+# API:      http://127.0.0.1:8787/api/v1
 ```
 
-## Related Projects
+### API tokens
 
-- [DisTube](https://github.com/skick1234/DisTube) - A Discord.js module to simplify your music commands and play songs with audio filters on Discord without any API key.
-- [@distube/ytsr](https://github.com/distubejs/ytsr) - DisTube fork of [ytsr](https://github.com/TimeForANinja/node-ytsr).
-- [@distube/ytpl](https://github.com/distubejs/ytpl) - DisTube fork of [ytpl](https://github.com/TimeForANinja/node-ytpl).
+Open **Settings** to generate a Bearer token. The full secret is shown once; only a SHA-256 hash is stored under `~/.ytdl-core/api-tokens.json` (override with `YTDL_DATA_DIR`).
+
+```bash
+# Extract (requires token); optional service/site forces the extractor
+curl -s http://127.0.0.1:8787/api/v1/extract \
+  -H "Authorization: Bearer ytdl_…" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://www.dailymotion.com/video/x5kesuj","service":"dailymotion"}'
+
+# Meta / site options (includes migration status)
+curl -s http://127.0.0.1:8787/api/v1/meta \
+  -H "Authorization: Bearer ytdl_…"
+```
+
+Force a service from the core API:
+
+```js
+const { extractInfo } = require("@distube/ytdl-core/core");
+await extractInfo(url, { service: "vimeo" }); // alias: site
+```
+
+Multi-site progress: [docs/site-migration.md](docs/site-migration.md).
+
+`GET /api/v1/meta` (and the extract UI site picker) include per-provider **`urlUsage`**, **`examples`**, and optional **`notes`** — what link to paste for each service.
+
+| Endpoint | Auth |
+|----------|------|
+| `GET /api/v1/health` | none |
+| `GET /api/v1/meta` | Bearer |
+| `POST /api/v1/extract` | Bearer |
+| `GET/POST /api/v1/tokens` | localhost **or** Bearer |
+| `POST /api/v1/tokens/:id/revoke` | localhost **or** Bearer |
+| `DELETE /api/v1/tokens/:id` | localhost **or** Bearer |
+
+Lab helpers `/api/meta` and `/api/extract` stay open for the local UI on loopback. Set `YTDL_API_REQUIRE_AUTH=1` to require Bearer everywhere.
+
+Env: `YTDL_WEB_HOST`, `YTDL_WEB_PORT`, `YTDL_DATA_DIR`, `YTDL_API_REQUIRE_AUTH`.
+
+## Architecture
+
+```
+URL → YoutubeDL → Extractor registry (service/site or auto)
+                 → site IE (YouTube, Vimeo, Dailymotion, …)
+     → format select → HTTP / HLS downloader
+```
+
+YouTube client versions and EJS scripts are synced from [yt-dlp](https://github.com/yt-dlp/yt-dlp). Batches 0–4 (50 sites + YouTube) are registered; see the migration tracker for the rest.
+
+## Scripts
+
+```bash
+pnpm install
+pnpm run build         # compile TypeScript → lib/ + copy EJS vendor scripts
+pnpm run typecheck
+pnpm test              # extractor URL / service dispatch tests
+pnpm run test:live     # optional live network extract smoke
+pnpm run test:extract  # YouTube network smoke
+pnpm run web           # extraction lab UI + API
+```
+
+## Legacy note
+
+This package previously lived as a DisTube-maintained fork of `fent/node-ytdl-core` and was marked unmaintained in favor of youtubei.js. The **5.x** line rebuilds the internals around yt-dlp’s YouTube strategy while keeping the classic `ytdl` / `getInfo` surface via `lib/compat`.
+
+## License
+
+MIT

@@ -1,0 +1,1 @@
+export { ThePlatformIE } from "./theplatform";

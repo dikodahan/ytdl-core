@@ -1,0 +1,1 @@
+export { JWPlatformIE } from "./jwplatform";

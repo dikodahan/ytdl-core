@@ -1,0 +1,1 @@
+export { NewgroundsIE } from "./newgrounds";

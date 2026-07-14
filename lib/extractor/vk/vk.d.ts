@@ -1,0 +1,12 @@
+import { InfoExtractor, type ExtractorInfo } from "../../core/info-extractor";
+import type { InfoDict } from "../../core/types";
+export declare class VKIE extends InfoExtractor {
+    static IE_NAME: string;
+    static IE_DESC: string;
+    static readonly _VALID_URL: RegExp;
+    static getInfo(): ExtractorInfo;
+    private downloadPayload;
+    private formatsFromPlayer;
+    extract(url: string): Promise<InfoDict>;
+}
+//# sourceMappingURL=vk.d.ts.map

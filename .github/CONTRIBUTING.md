@@ -7,7 +7,11 @@ If you wish to contribute to @distube/ytdl-core, feel free to fork the repositor
 ## Setup
 
 1. Fork & clone the repository, make sure you are on the correct branch
-2. Run `npm ci`
+2. Enable Corepack and install deps with **pnpm** (this repo does not use npm/yarn):
+   ```bash
+   corepack enable
+   pnpm install
+   ```
 3. Code your idea
-4. Run `npm run lint` to run ESLint
+4. Run `pnpm run build` and `pnpm run typecheck`
 5. [Submit a pull request](https://github.com/distubejs/ytdl-core/pulls) (Make sure you follow the [conventional commit format](https://www.conventionalcommits.org/en/v1.0.0/))

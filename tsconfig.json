@@ -1,9 +1,21 @@
 {
   "compilerOptions": {
+    "target": "ES2022",
     "module": "commonjs",
-    "target": "es5",
-    "allowJs": true
+    "lib": ["ES2022"],
+    "outDir": "lib",
+    "rootDir": "src",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "types": ["node"]
   },
-  "include": ["typings/**/*"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "src/**/vendor/**", "src/**/ejs-worker.js"]
 }

@@ -1,0 +1,1 @@
+export { YandexMusicIE } from "./yandexmusic";
