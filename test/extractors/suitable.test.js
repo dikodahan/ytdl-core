@@ -75,15 +75,44 @@ const CASES = [
     "https://www.bandlab.com/track/04b37e88dba24967b9dac8eb8567ff39_07d7f906fc96ee11b75e000d3a428fff",
   ],
   ["reverbnation", "https://www.reverbnation.com/alkilados/song/16965047-mona-lisa"],
+  // Batch 5
+  ["archiveorg", "https://archive.org/details/electricsheep-flock-244-80000-4"],
+  ["bbc", "https://www.bbc.co.uk/iplayer/episode/b00vgq05"],
+  ["ard", "https://www.ardmediathek.de/video/Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydA"],
+  ["arte", "https://www.arte.tv/en/videos/123456-000-A/title"],
+  ["pbs", "https://www.pbs.org/video/2365179876"],
+  ["cnn", "https://www.cnn.com/videos/tech/2017/01/01/example.cnn"],
+  ["nbc", "https://www.nbc.com/the-tonight-show/video/jimmy-fallon/3559230"],
+  ["abc", "https://www.abc.net.au/news/2020-01-01/example/12345678"],
+  ["bloomberg", "https://www.bloomberg.com/news/videos/2020-01-01/example"],
+  ["reuters", "https://www.reuters.com/video/example"],
+  // Batch 6
+  ["googledrive", "https://drive.google.com/file/d/0ByeS4oOUV-49Zzh4R1J6R09zazQ/view"],
+  ["dropbox", "https://www.dropbox.com/s/nelirfsxnmcfbfh/video.mp4?dl=0"],
+  ["imgur", "https://imgur.com/A61SaA1"],
+  ["redgifs", "https://www.redgifs.com/watch/squeakyhelplesswisent"],
+  ["streamable", "https://streamable.com/dnd1"],
+  ["box", "https://mlssoccer.app.box.com/s/0evd2o3e08l60lr4ygukepvnkord1o1x/file/510727257538"],
+  ["yandexdisk", "https://yadi.sk/i/VdOeDou8eZs6Y"],
+  ["mediafire", "https://www.mediafire.com/file/abc123def456/video.mp4"],
+  ["pixeldrain", "https://pixeldrain.com/u/VFjemoqC"],
+  ["streamja", "https://streamja.com/4n4Nr"],
+  ["generic", "https://example.com/any-page"],
 ];
 
 describe("extractor suitable()", () => {
-  it("registers youtube + batches 0–4", () => {
-    const names = listExtractors().map(ie => ie.IE_NAME).sort();
-    assert.equal(names.length, 51);
+  it("registers youtube + batches 0–6 + generated catalog + generic", () => {
+    const names = listExtractors().map(ie => ie.IE_NAME);
+    assert.ok(names.length >= 72, `expected ≥72 extractors, got ${names.length}`);
+    assert.ok(findExtractorByName("generic"), "missing generic");
     for (const [name] of CASES) {
       assert.ok(findExtractorByName(name), `missing ${name}`);
     }
+  });
+
+  it("generic is registered last", () => {
+    const names = listExtractors().map(ie => ie.IE_NAME);
+    assert.equal(names[names.length - 1], "generic");
   });
 
   for (const [name, url] of CASES) {

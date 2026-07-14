@@ -1,22 +1,20 @@
 # Site migration tracker
 
-VLC-oriented single-video ports from [yt-dlp](https://github.com/yt-dlp/yt-dlp).  
+VLC-oriented single-video ports from [yt-dlp](https://github.com/yt-dlp/yt-dlp).
 Machine-readable status: [`site-migration.json`](./site-migration.json).
 
 | Field | Value |
 |-------|--------|
 | Upstream pin | 2026.07.04 |
 | Depth | `vlc-video` (watch/share URL → playable streams; skip playlists/search) |
-| Batch size | 10 modules |
+| Hand-ported | YouTube + batches 0–6 (71 dedicated extractors) |
+| Generated | 851 modules via webpage scrape (`src/extractor/generated/`) |
+| Generic | catch-all `generic` registered last |
 
-## Done criteria (module → `ready`)
+## Done criteria
 
-- Registered `InfoExtractor` with stable `IE_NAME` (= module id)
-- `_VALID_URL` covers main share/embed URLs
-- Returns ≥1 progressive or HLS URL for a fixture
-- Smoke coverage under `test/extractors/`
-- Tracker JSON + this checklist updated
-- `urlUsage` + `examples` entry in [`src/extractor/url-usage.ts`](../src/extractor/url-usage.ts) (shown in the extract UI / meta)
+- **ready** — dedicated TypeScript extractor with fixtures
+- **partial** — auto-generated matcher + OG/JSON-LD/HTML5 scrape (best-effort; not full yt-dlp parity)
 
 ## YouTube (pre-migration)
 
@@ -99,32 +97,53 @@ Status: **complete**
 
 ## Batch 5 — News / public broadcasters
 
-Status: pending
+Status: **complete**
 
-- [ ] `archiveorg` · `bbc` · `ard` · `arte` · `pbs` · `cnn` · `nbc` · `abc` · `bloomberg` · `reuters`
+- [x] `archiveorg`
+- [x] `bbc`
+- [x] `ard`
+- [x] `arte`
+- [x] `pbs`
+- [x] `cnn`
+- [x] `nbc`
+- [x] `abc`
+- [x] `bloomberg`
+- [x] `reuters`
 
 ## Batch 6 — Hosts / short clips
 
-Status: pending
+Status: **complete**
 
-- [ ] `googledrive` · `dropbox` · `imgur` · `redgifs` · `streamable` · `box` · `yandexdisk` · `mediafire` · `pixeldrain` · `streamja`
+- [x] `googledrive`
+- [x] `dropbox`
+- [x] `imgur`
+- [x] `redgifs`
+- [x] `streamable`
+- [x] `box`
+- [x] `yandexdisk`
+- [x] `mediafire`
+- [x] `pixeldrain`
+- [x] `streamja`
 
-## Later
+## Batches 7+ — Generated (webpage scrape)
 
-Continue in groups of 10. Port `generic` / `genericembeds` last. Mark DRM-only SVOD as `skipped` / `blocked`.
+Status: **complete** (851 modules, status `partial`)
 
-## Workflow
+Regenerate with:
 
-1. Port `src/extractor/<module>/`
-2. Register in `src/extractor/register.ts`
-3. Add/update `URL_USAGE` guide (what link to paste + examples) in `src/extractor/url-usage.ts`
-4. Add/adjust tests; smoke extract once
-5. Set module `status` in JSON; tick checkbox here
-6. When all 10 in a batch are `ready`, set batch `status` to `complete`
+```bash
+pnpm run generate:extractors
+```
+
+Catalog: `src/extractor/generated/catalog.json`.
+
+## Generic
+
+- [x] `generic` — ready (fallback scrape for unmatched URLs)
 
 ## Tests
 
 ```bash
 pnpm test                 # URL matching + service force-dispatch
-pnpm run test:live        # network extract (jwplatform, bitmovin, CF Stream, dailymotion, soundcloud)
+pnpm run test:live        # network extract smoke
 ```

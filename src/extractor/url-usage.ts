@@ -362,7 +362,7 @@ export const URL_USAGE: Record<string, UrlUsageGuide> = {
     examples: ["https://www.reverbnation.com/alkilados/song/16965047-mona-lisa"],
   },
 
-  // Batch 5 — planned
+  // Batch 5 — news / broadcasters
   archiveorg: {
     usage: "Paste an Internet Archive details or download URL for a media item.",
     examples: ["https://archive.org/details/item-identifier"],
@@ -393,8 +393,8 @@ export const URL_USAGE: Record<string, UrlUsageGuide> = {
     examples: ["https://www.nbc.com/…/video/…"],
   },
   abc: {
-    usage: "Paste an ABC (US or AU) video URL.",
-    examples: ["https://abcnews.go.com/…/video/…"],
+    usage: "Paste an ABC Australia (abc.net.au) news / listen / btn article URL.",
+    examples: ["https://www.abc.net.au/news/…/12345678"],
   },
   bloomberg: {
     usage: "Paste a Bloomberg video URL.",
@@ -405,7 +405,7 @@ export const URL_USAGE: Record<string, UrlUsageGuide> = {
     examples: ["https://www.reuters.com/video/…"],
   },
 
-  // Batch 6 — planned
+  // Batch 6 — hosts / short clips
   googledrive: {
     usage: "Paste a Google Drive file URL (`drive.google.com/file/d/{id}`).",
     examples: ["https://drive.google.com/file/d/FILE_ID/view"],
@@ -446,6 +446,13 @@ export const URL_USAGE: Record<string, UrlUsageGuide> = {
   streamja: {
     usage: "Paste a Streamja clip URL.",
     examples: ["https://streamja.com/abc12"],
+  },
+
+  generic: {
+    usage:
+      "Paste any webpage URL. Best-effort scrape of OG video, JSON-LD, and HTML5 media when no dedicated extractor matches.",
+    examples: [],
+    notes: "Registered last as a catch-all; prefer a named service when available.",
   },
 };
 

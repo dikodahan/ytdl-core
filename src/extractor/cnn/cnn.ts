@@ -1,0 +1,182 @@
+import { InfoExtractor, type ExtractorInfo } from "../../core/info-extractor";
+import type { Format, InfoDict } from "../../core/types";
+import {
+  baseInfo,
+  hlsFormat,
+  progressiveFormat,
+  tryParseJson,
+} from "../_shared/helpers";
+
+const VALID_URL =
+  /^https?:\/\/(?:(?:edition|www|money|cnnespanol)\.)?cnn\.com\/(?!audio\/)(?<display_id>[^?#]+?)(?:[?#]|$|\/index\.html)/i;
+
+interface CnnFile {
+  fileUri?: string;
+}
+
+interface CnnVideoData {
+  files?: CnnFile[];
+  headline?: string;
+  description?: string;
+  trt?: number;
+  dateCreated?: { uts?: number };
+}
+
+interface CnnMediaDesktop {
+  media?: {
+    desktop?: {
+      unprotected?: { unencrypted?: { url?: string } };
+    };
+  };
+}
+
+function parseAttr(tag: string, name: string): string | null {
+  return (
+    tag.match(new RegExp(`\\b${name}=["']([^"']*)["']`, "i"))?.[1] ||
+    tag.match(new RegExp(`\\b${name}=([^\\s>]+)`, "i"))?.[1] ||
+    null
+  );
+}
+
+export class CnnIE extends InfoExtractor {
+  static IE_NAME = "cnn";
+  static IE_DESC = "CNN video pages";
+  static readonly _VALID_URL = VALID_URL;
+
+  static getInfo(): ExtractorInfo {
+    return {
+      name: this.IE_NAME,
+      description: `${this.IE_DESC} — progressive MP4 / HLS`,
+      validUrl: String(this._VALID_URL),
+      options: [],
+    };
+  }
+
+  async extract(url: string): Promise<InfoDict> {
+    const displayId = url.match(VALID_URL)?.groups?.display_id;
+    if (!displayId) throw new Error(`Could not extract id from URL: ${url}`);
+
+    const webpage = await this.request.text(url);
+    const env = webpage.match(/window\.env\s*=\s*(\{[\s\S]*?\});/);
+    const appId =
+      (env ? tryParseJson<{ TOP_AUTH_SERVICE_APP_ID?: string }>(env[1] || "") : null)
+        ?.TOP_AUTH_SERVICE_APP_ID || null;
+
+    const playerTags = [
+      ...webpage.matchAll(
+        /<div\b[^>]*\bdata-component-name=["']video-player["'][^>]*>/gi,
+      ),
+    ];
+
+    type Entry = {
+      id: string;
+      title: string;
+      description: string | null;
+      duration: number | null;
+      thumbnail?: string;
+      formats: Format[];
+    };
+
+    const entries: Entry[] = [];
+
+    for (const tagMatch of playerTags) {
+      const tag = tagMatch[0];
+      const mediaId = parseAttr(tag, "data-media-id");
+      if (!mediaId) continue;
+      const parentUri = parseAttr(tag, "data-video-resource-parent-uri");
+      const formats: Format[] = [];
+      let videoData: CnnVideoData = {};
+
+      if (parentUri) {
+        try {
+          videoData = await this.request.json<CnnVideoData>(
+            "https://fave.api.cnn.io/v1/video",
+            { query: { id: mediaId, stellarUri: parentUri } },
+          );
+          for (const file of videoData.files || []) {
+            if (!file.fileUri) continue;
+            const m = file.fileUri.match(/-(?<res>\d+x\d+)_(?<tbr>\d+)k\.mp4/i);
+            const [w, h] = m?.groups?.res?.split("x").map(Number) || [];
+            formats.push(
+              progressiveFormat(file.fileUri, {
+                format_id: "direct",
+                tbr: m?.groups?.tbr ? Number(m.groups.tbr) : null,
+                width: w || null,
+                height: h || null,
+              }),
+            );
+          }
+        } catch {
+          /* best-effort */
+        }
+      }
+
+      if (appId) {
+        try {
+          const mediaData = await this.request.json<CnnMediaDesktop>(
+            `https://medium.ngtv.io/v2/media/${mediaId}/desktop`,
+            { query: { appId } },
+          );
+          const m3u8 = mediaData.media?.desktop?.unprotected?.unencrypted?.url;
+          if (m3u8) formats.push(hlsFormat(m3u8));
+        } catch {
+          /* best-effort */
+        }
+      }
+
+      if (!formats.length) continue;
+
+      let thumb: string | undefined;
+      const poster = parseAttr(tag, "data-poster-image-override");
+      if (poster) {
+        try {
+          const parsed = tryParseJson<{ big?: { uri?: string } }>(poster);
+          thumb = parsed?.big?.uri;
+        } catch {
+          /* ignore */
+        }
+      }
+
+      const durRaw = parseAttr(tag, "data-duration");
+      const duration =
+        videoData.trt ??
+        (durRaw
+          ? (() => {
+              const parts = durRaw.split(":").map(Number);
+              if (parts.some(n => !Number.isFinite(n))) return null;
+              if (parts.length === 3) return parts[0]! * 3600 + parts[1]! * 60 + parts[2]!;
+              if (parts.length === 2) return parts[0]! * 60 + parts[1]!;
+              return Number(durRaw) || null;
+            })()
+          : null);
+
+      entries.push({
+        id: mediaId,
+        title:
+          parseAttr(tag, "data-headline") ||
+          videoData.headline ||
+          mediaId,
+        description: parseAttr(tag, "data-description") || videoData.description || null,
+        duration,
+        thumbnail: thumb,
+        formats,
+      });
+    }
+
+    if (!entries.length) {
+      throw new Error(`No playable CNN video found on ${displayId}`);
+    }
+
+    // VLC single-video: take the first / featured player
+    const entry = entries[0]!;
+    return baseInfo("cnn", url, {
+      id: entry.id,
+      display_id: displayId,
+      title: entry.title,
+      description: entry.description,
+      duration: entry.duration,
+      thumbnail: entry.thumbnail,
+      formats: entry.formats,
+    });
+  }
+}

@@ -14,4 +14,11 @@ const workerSrc = path.join(__dirname, "..", "src", "extractor", "youtube", "jsc
 const workerDest = path.join(__dirname, "..", "lib", "extractor", "youtube", "jsc", "ejs-worker.js");
 fs.copyFileSync(workerSrc, workerDest);
 
+// Generated extractor catalog (JSON is not emitted by tsc)
+const catalogSrc = path.join(__dirname, "..", "src", "extractor", "generated", "catalog.json");
+const catalogDest = path.join(__dirname, "..", "lib", "extractor", "generated", "catalog.json");
+fs.mkdirSync(path.dirname(catalogDest), { recursive: true });
+fs.copyFileSync(catalogSrc, catalogDest);
+
 console.log(`Copied EJS vendor scripts → ${dest}`);
+console.log(`Copied generated catalog → ${catalogDest}`);

@@ -1,0 +1,1 @@
+{"version":3,"file":"webpage-media.d.ts","sourceRoot":"","sources":["../../../src/extractor/_shared/webpage-media.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAU,QAAQ,EAAE,MAAM,kBAAkB,CAAC;AACzD,OAAO,KAAK,EAAE,aAAa,EAAE,MAAM,0BAA0B,CAAC;AA6C9D,4FAA4F;AAC5F,wBAAsB,mBAAmB,CACvC,OAAO,EAAE,aAAa,EACtB,OAAO,EAAE,MAAM,EACf,aAAa,EAAE,MAAM,GACpB,OAAO,CAAC,QAAQ,CAAC,CAiEnB"}

@@ -136,7 +136,7 @@ URL → YoutubeDL → Extractor registry (service/site or auto)
      → format select → HTTP / HLS downloader
 ```
 
-YouTube client versions and EJS scripts are synced from [yt-dlp](https://github.com/yt-dlp/yt-dlp). Batches 0–4 (50 sites + YouTube) are registered; see the migration tracker for the rest.
+YouTube client versions and EJS scripts are synced from [yt-dlp](https://github.com/yt-dlp/yt-dlp). Batches 0–6 are hand-ported (~71 dedicated extractors); remaining yt-dlp modules are registered as best-effort webpage scrapers plus a `generic` fallback — see the migration tracker.
 
 ## Scripts
 

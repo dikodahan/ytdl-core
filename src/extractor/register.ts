@@ -61,6 +61,31 @@ import { AudiusIE } from "./audius";
 import { BandlabIE } from "./bandlab";
 import { ReverbNationIE } from "./reverbnation";
 
+// Batch 5 — news / public broadcasters
+import { ArchiveOrgIE } from "./archiveorg";
+import { BbcIE } from "./bbc";
+import { ArdIE } from "./ard";
+import { ArteIE } from "./arte";
+import { PbsIE } from "./pbs";
+import { CnnIE } from "./cnn";
+import { NbcIE } from "./nbc";
+import { AbcIE } from "./abc";
+import { BloombergIE } from "./bloomberg";
+import { ReutersIE } from "./reuters";
+
+// Batch 6 — hosts / short clips
+import { GoogleDriveIE } from "./googledrive";
+import { DropboxIE } from "./dropbox";
+import { ImgurIE } from "./imgur";
+import { RedGifsIE } from "./redgifs";
+import { StreamableIE } from "./streamable";
+import { BoxIE } from "./box";
+import { YandexDiskIE } from "./yandexdisk";
+import { MediaFireIE } from "./mediafire";
+import { PixeldrainIE } from "./pixeldrain";
+import { StreamjaIE } from "./streamja";
+import { registerGeneratedExtractors } from "./generated/register-generated";
+
 let registered = false;
 
 export function registerBuiltInExtractors(): void {
@@ -128,6 +153,33 @@ export function registerBuiltInExtractors(): void {
   registerExtractor(AudiusIE);
   registerExtractor(BandlabIE);
   registerExtractor(ReverbNationIE);
+
+  // Batch 5 — news / public broadcasters
+  registerExtractor(ArchiveOrgIE);
+  registerExtractor(BbcIE);
+  registerExtractor(ArdIE);
+  registerExtractor(ArteIE);
+  registerExtractor(PbsIE);
+  registerExtractor(CnnIE);
+  registerExtractor(NbcIE);
+  registerExtractor(AbcIE);
+  registerExtractor(BloombergIE);
+  registerExtractor(ReutersIE);
+
+  // Batch 6 — hosts / short clips
+  registerExtractor(GoogleDriveIE);
+  registerExtractor(DropboxIE);
+  registerExtractor(ImgurIE);
+  registerExtractor(RedGifsIE);
+  registerExtractor(StreamableIE);
+  registerExtractor(BoxIE);
+  registerExtractor(YandexDiskIE);
+  registerExtractor(MediaFireIE);
+  registerExtractor(PixeldrainIE);
+  registerExtractor(StreamjaIE);
+
+  // Remaining yt-dlp modules (webpage scrape) + generic fallback last.
+  registerGeneratedExtractors();
 }
 
 export { YoutubeIE };
@@ -190,4 +242,28 @@ export {
   AudiusIE,
   BandlabIE,
   ReverbNationIE,
+};
+export {
+  ArchiveOrgIE,
+  BbcIE,
+  ArdIE,
+  ArteIE,
+  PbsIE,
+  CnnIE,
+  NbcIE,
+  AbcIE,
+  BloombergIE,
+  ReutersIE,
+};
+export {
+  GoogleDriveIE,
+  DropboxIE,
+  ImgurIE,
+  RedGifsIE,
+  StreamableIE,
+  BoxIE,
+  YandexDiskIE,
+  MediaFireIE,
+  PixeldrainIE,
+  StreamjaIE,
 };
