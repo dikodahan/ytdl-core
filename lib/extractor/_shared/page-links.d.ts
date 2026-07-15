@@ -12,9 +12,15 @@ export interface CategoryListEntry {
     url: string;
     title?: string | null;
     display_id?: string | null;
+    /** Category/tag preview image when available. */
+    thumbnail?: string | null;
 }
 /** Parse browse categories/tags from the YouPorn homepage or legacy index HTML. */
 export declare function parseYouPornCategories(html: string, pageUrl: string): CategoryListEntry[];
 export declare function parseYouJizzEntries(html: string, pageUrl: string): VideoListEntry[];
 export declare function parseYouJizzNextPage(html: string, pageUrl: string): string | null;
+export declare function parseXnxxEntries(html: string, pageUrl: string): VideoListEntry[];
+export declare function parseXnxxNextPage(html: string, pageUrl: string): string | null;
+/** Parse browse categories/tags from XNXX homepage config or tag index pages. */
+export declare function parseXnxxCategories(html: string, pageUrl: string): CategoryListEntry[];
 //# sourceMappingURL=page-links.d.ts.map

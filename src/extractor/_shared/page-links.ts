@@ -26,6 +26,56 @@ export function dedupeEntries(entries: VideoListEntry[]): VideoListEntry[] {
   return out;
 }
 
+function absCdnUrl(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const url = raw.trim().replace(/\\\//g, "/");
+  if (!url || url.includes("lightbox-blank.gif")) return null;
+  if (url.startsWith("//")) return `https:${url}`;
+  return url;
+}
+
+function extractBalancedJson(html: string, openIndex: number): unknown | null {
+  const open = html[openIndex];
+  const close = open === "{" ? "}" : open === "[" ? "]" : null;
+  if (!close) return null;
+
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  for (let i = openIndex; i < html.length; i++) {
+    const ch = html[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === "\\") esc = true;
+      else if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') {
+      inStr = true;
+      continue;
+    }
+    if (ch === open) depth++;
+    else if (ch === close) {
+      depth--;
+      if (depth === 0) {
+        try {
+          return JSON.parse(html.slice(openIndex, i + 1));
+        } catch {
+          return null;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function pickListingThumbnail(block: string): string | null {
+  const mzl = block.match(/\bdata-mzl=["'](?<url>[^"']+)["']/i)?.groups?.url;
+  const src = block.match(/\bdata-src=["'](?<url>[^"']+)["']/i)?.groups?.url;
+  const sfw = block.match(/\bdata-sfwthumb=["'](?<url>[^"']+)["']/i)?.groups?.url;
+  return absCdnUrl(mzl || src || sfw);
+}
+
 export function parseYouPornWatchEntries(html: string, pageUrl: string): VideoListEntry[] {
   const entries: VideoListEntry[] = [];
 
@@ -85,6 +135,8 @@ export interface CategoryListEntry {
   url: string;
   title?: string | null;
   display_id?: string | null;
+  /** Category/tag preview image when available. */
+  thumbnail?: string | null;
 }
 
 function decodeHtmlEntities(text: string): string {
@@ -206,4 +258,154 @@ export function parseYouJizzEntries(html: string, pageUrl: string): VideoListEnt
 export function parseYouJizzNextPage(html: string, pageUrl: string): string | null {
   const m = html.match(/<a\b[^>]*class=["']pagination-next["'][^>]*\bhref=["'](?<href>[^"']+)["']/i);
   return m?.groups?.href ? absPageUrl(m.groups.href, pageUrl) : null;
+}
+
+export function parseXnxxEntries(html: string, pageUrl: string): VideoListEntry[] {
+  const byId = new Map<string, VideoListEntry>();
+
+  for (const block of html.split(/(?=<div[^>]*\bid=["']video_[a-z0-9]+["'])/i)) {
+    const id = block.match(/\bid=["']video_(?<id>[a-z0-9]+)["']/i)?.groups?.id;
+    if (!id) continue;
+
+    const href =
+      block.match(/\bhref=["'](?<href>\/video-[a-z0-9]+\/[^"']*)["']/i)?.groups?.href ||
+      `/video-${id}/`;
+    const title =
+      block.match(/\btitle=["'](?<title>[^"']+)["']/i)?.groups?.title ||
+      block.match(/<a[^>]+href=["']\/video-[^"']+["'][^>]*>(?<title>[^<]+)/i)?.groups?.title;
+
+    byId.set(id, {
+      id,
+      url: absPageUrl(href, pageUrl),
+      title: title ? decodeHtmlEntities(title) : null,
+      thumbnail: pickListingThumbnail(block),
+    });
+  }
+
+  if (!byId.size) {
+    for (const m of html.matchAll(
+      /<a\b[^>]*\bhref=["'](?<href>\/video-(?<id>[a-z0-9]+)\/[^"']*)["'][^>]*\btitle=["'](?<title>[^"']+)["']/gi,
+    )) {
+      const id = m.groups?.id;
+      const href = m.groups?.href;
+      if (!id || !href || byId.has(id)) continue;
+      byId.set(id, {
+        id,
+        url: absPageUrl(href, pageUrl),
+        title: decodeHtmlEntities(m.groups?.title || "") || null,
+      });
+    }
+  }
+
+  return dedupeEntries([...byId.values()]);
+}
+
+export function parseXnxxNextPage(html: string, pageUrl: string): string | null {
+  const m = html.match(
+    /<a\b[^>]*class=["'][^"']*no-page next[^"']*["'][^>]*\bhref=["'](?<href>[^"'#]+)["']/i,
+  );
+  return m?.groups?.href ? absPageUrl(m.groups.href, pageUrl) : null;
+}
+
+interface XnxxConfCategory {
+  label?: string;
+  url?: string;
+  cat_id?: number;
+  type?: string;
+  thumbs?: number[];
+}
+
+interface XnxxThumbBlockItem {
+  i?: string;
+  u?: string;
+  t?: string;
+  tf?: string;
+  id?: number;
+}
+
+function xnxxCategorySlug(href: string): string | null {
+  const search = href.match(/^\/search\/([^/?#]+)/i);
+  if (search?.[1]) return decodeURIComponent(search[1].replace(/\+/g, " "));
+  const path = href.match(/^\/([^/?#]+)/i);
+  return path?.[1] || null;
+}
+
+function normalizeXnxxBrowsePath(href: string): string {
+  return href.split("?")[0]!.replace(/\/+$/, "") || "/";
+}
+
+function parseXnxxConfCategories(html: string): XnxxConfCategory[] {
+  const marker = html.match(/window\.xv\.conf\s*=\s*(\{)/);
+  if (marker?.index == null) return [];
+  const brace = html.indexOf("{", marker.index);
+  const conf = extractBalancedJson(html, brace) as {
+    categories?: XnxxConfCategory[];
+    dyn?: { categories?: XnxxConfCategory[] };
+  } | null;
+  return conf?.dyn?.categories || conf?.categories || [];
+}
+
+function parseXnxxThumbBlockList(html: string): XnxxThumbBlockItem[] {
+  const marker = html.match(/write_thumb_block_list\s*\(\s*(\[)/);
+  if (marker?.index == null) return [];
+  const start = html.indexOf("[", marker.index);
+  const parsed = extractBalancedJson(html, start);
+  return Array.isArray(parsed) ? (parsed as XnxxThumbBlockItem[]) : [];
+}
+
+/** Parse browse categories/tags from XNXX homepage config or tag index pages. */
+export function parseXnxxCategories(html: string, pageUrl: string): CategoryListEntry[] {
+  const byId = new Map<string, CategoryListEntry>();
+
+  for (const item of parseXnxxThumbBlockList(html)) {
+    if (!item.u || !item.i) continue;
+    const href = normalizeXnxxBrowsePath(item.u);
+    const slug = xnxxCategorySlug(href);
+    const id = item.id != null ? String(item.id) : slug?.replace(/\s+/g, "_").toLowerCase();
+    if (!id) continue;
+    const title = item.t || item.tf;
+    byId.set(id, {
+      id,
+      title: title ? decodeHtmlEntities(title) : slug || id,
+      url: absPageUrl(href.endsWith("/") ? href : `${href}/`, pageUrl),
+      display_id: slug || id,
+      thumbnail: absCdnUrl(item.i),
+    });
+  }
+
+  for (const cat of parseXnxxConfCategories(html)) {
+    if (!cat.url || !cat.label) continue;
+    const href = normalizeXnxxBrowsePath(cat.url);
+    const slug = xnxxCategorySlug(href);
+    const id = cat.cat_id != null ? String(cat.cat_id) : slug;
+    if (!id) continue;
+    const existing = byId.get(id);
+    byId.set(id, {
+      id,
+      title: decodeHtmlEntities(cat.label),
+      url: absPageUrl(href.endsWith("/") ? href : `${href}/`, pageUrl),
+      display_id: slug || id,
+      thumbnail: existing?.thumbnail ?? null,
+    });
+  }
+
+  for (const m of html.matchAll(
+    /<a\b[^>]*\bhref=["'](?<href>\/search\/[^"'#?]+)["'][^>]*>(?<title>[^<]+)/gi,
+  )) {
+    const href = m.groups?.href;
+    const title = m.groups?.title?.trim();
+    if (!href) continue;
+    const slug = xnxxCategorySlug(href);
+    if (!slug) continue;
+    const id = slug.replace(/\s+/g, "_").toLowerCase();
+    if (byId.has(id)) continue;
+    byId.set(id, {
+      id,
+      title: title ? decodeHtmlEntities(title) : slug,
+      url: absPageUrl(href.endsWith("/") ? href : `${href}/`, pageUrl),
+      display_id: slug,
+    });
+  }
+
+  return [...byId.values()];
 }

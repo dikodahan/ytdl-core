@@ -29,7 +29,7 @@ HAND_PORTED = {
     "bloomberg", "reuters", "foxnews",
     "googledrive", "dropbox", "imgur", "redgifs", "streamable", "box",
     "yandexdisk", "mediafire", "pixeldrain", "streamja",
-    "youporn", "youjizz",
+    "youporn", "youjizz", "xnxx",
 }
 
 INFRA = {

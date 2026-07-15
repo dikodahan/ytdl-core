@@ -5,6 +5,8 @@ export interface VideoListEntry {
     url: string;
     title?: string | null;
     display_id?: string | null;
+    /** Preview image URL when the listing page exposes one. */
+    thumbnail?: string | null;
 }
 export interface VideoListResult {
     extractor: string;

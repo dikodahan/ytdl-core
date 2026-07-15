@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "count": 848,
+  "count": 847,
   "extractors": [
     {
       "id": "abcnews",
@@ -12623,22 +12623,6 @@
         "x-minus.org"
       ],
       "module": "xminus",
-      "source": "generated"
-    },
-    {
-      "id": "xnxx",
-      "ieClass": "XNXXIE",
-      "ieName": "xnxx",
-      "description": "xnxx (auto-generated webpage extract)",
-      "patterns": [
-        "https?://(?:video|www)\\.xnxx3?\\.com/video-?(?<id>[0-9a-z]+)/"
-      ],
-      "hosts": [
-        "www.xnxx.com",
-        "video.xnxx.com",
-        "www.xnxx3.com"
-      ],
-      "module": "xnxx",
       "source": "generated"
     },
     {

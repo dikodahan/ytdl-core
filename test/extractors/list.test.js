@@ -15,12 +15,13 @@ const LIST_CASES = [
   ["youporn", "https://www.youporn.com/porntags/milf/"],
   ["youporn-category", "https://www.youporn.com/category/amateur/"],
   ["youjizz", "https://www.youjizz.com/categories/teen-1.html"],
+  ["xnxx", "https://www.xnxx.com/search/amateur/"],
 ];
 
 describe("video list API", () => {
   it("registers list-capable extractors", () => {
     const names = listListCapableExtractors().map(ie => ie.IE_NAME).sort();
-    assert.deepEqual(names, ["youjizz", "youporn"]);
+    assert.deepEqual(names, ["xnxx", "youjizz", "youporn"]);
   });
 
   for (const [name, url] of LIST_CASES) {
@@ -38,6 +39,11 @@ describe("video list API", () => {
       /not a supported listing page/,
     );
     assert.equal(resolveListExtractor("https://www.youporn.com/watch/16290308/"), null);
+    assert.throws(
+      () => resolveListExtractor("https://www.xnxx.com/video-55awb78/", "xnxx"),
+      /not a supported listing page/,
+    );
+    assert.equal(resolveListExtractor("https://www.xnxx.com/video-55awb78/"), null);
   });
 
   for (const [name, url] of LIST_CASES) {
@@ -48,9 +54,19 @@ describe("video list API", () => {
       assert.ok(result.entries.length >= 1, "expected at least one entry");
       for (const entry of result.entries) {
         assert.match(entry.url, /^https?:\/\//);
-        assert.match(entry.id, /^\d+$/);
-        if (service === "youporn") assert.match(entry.url, /youporn\.com\/watch\//);
-        if (service === "youjizz") assert.match(entry.url, /youjizz\.com\/videos\//);
+        if (service === "youporn") {
+          assert.match(entry.id, /^\d+$/);
+          assert.match(entry.url, /youporn\.com\/watch\//);
+        }
+        if (service === "youjizz") {
+          assert.match(entry.id, /^\d+$/);
+          assert.match(entry.url, /youjizz\.com\/videos\//);
+        }
+        if (service === "xnxx") {
+          assert.match(entry.id, /^[a-z0-9]+$/i);
+          assert.match(entry.url, /xnxx\.com\/video-/);
+          if (entry.thumbnail) assert.match(entry.thumbnail, /^https?:\/\//);
+        }
       }
     });
   }

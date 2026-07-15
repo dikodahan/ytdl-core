@@ -9,7 +9,7 @@
     ]
   },
   "handPortedCount": 74,
-  "generatedCount": 848,
+  "generatedCount": 847,
   "batches": [
     {
       "id": 0,
@@ -7796,7 +7796,7 @@
     },
     {
       "id": 89,
-      "title": "Generated webpage scrape (wykop\u2013yahoo)",
+      "title": "Generated webpage scrape (wykop\u2013yandexvideo)",
       "status": "complete",
       "source": "generated",
       "modules": [
@@ -7849,14 +7849,6 @@
           "source": "generated"
         },
         {
-          "id": "xnxx",
-          "status": "partial",
-          "ies": [
-            "XNXXIE"
-          ],
-          "source": "generated"
-        },
-        {
           "id": "xvideos",
           "status": "partial",
           "ies": [
@@ -7879,15 +7871,7 @@
             "YahooIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 90,
-      "title": "Generated webpage scrape (yandexvideo\u2013zattoo)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "yandexvideo",
           "status": "partial",
@@ -7895,7 +7879,15 @@
             "YandexVideoIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 90,
+      "title": "Generated webpage scrape (yapfiles\u2013zdf)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "yapfiles",
           "status": "partial",
@@ -7967,15 +7959,7 @@
             "ZattooIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 91,
-      "title": "Generated webpage scrape (zdf\u2013zype)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "zdf",
           "status": "partial",
@@ -7983,7 +7967,15 @@
             "ZDFIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 91,
+      "title": "Generated webpage scrape (zeenews\u2013zype)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "zeenews",
           "status": "partial",
