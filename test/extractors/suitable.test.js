@@ -86,6 +86,7 @@ const CASES = [
   ["abc", "https://www.abc.net.au/news/2020-01-01/example/12345678"],
   ["bloomberg", "https://www.bloomberg.com/news/videos/2020-01-01/example"],
   ["reuters", "https://www.reuters.com/video/example"],
+  ["foxnews", "https://www.foxnews.com/video/6328632286112"],
   // Batch 6
   ["googledrive", "https://drive.google.com/file/d/0ByeS4oOUV-49Zzh4R1J6R09zazQ/view"],
   ["dropbox", "https://www.dropbox.com/s/nelirfsxnmcfbfh/video.mp4?dl=0"],

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "count": 851,
+  "count": 850,
   "extractors": [
     {
       "id": "abcnews",
@@ -3244,26 +3244,6 @@
         "www.fox9.com"
       ],
       "module": "fox9",
-      "source": "generated"
-    },
-    {
-      "id": "foxnews",
-      "ieClass": "FoxNewsIE",
-      "ieName": "foxnews",
-      "description": "Fox News and Fox Business Video (auto-generated webpage extract)",
-      "patterns": [
-        "https?://video\\.(?:insider\\.)?fox(?:news|business)\\.com/v/(?:video-embed\\.html\\?video_id=)?(?<id>\\d+)",
-        "https?://(?:www\\.)?foxnews\\.com/video/(?<id>\\d+)",
-        "https?://(?:www\\.)?(?:insider\\.)?foxnews\\.com/(?!v)([^/]+/)+(?<id>[a-z-]+)"
-      ],
-      "hosts": [
-        "video.foxnews.com",
-        "video.insider.foxnews.com",
-        "video.foxbusiness.com",
-        "www.foxnews.com",
-        "insider.foxnews.com"
-      ],
-      "module": "foxnews",
       "source": "generated"
     },
     {

@@ -8,7 +8,7 @@ Machine-readable status: [`site-migration.json`](./site-migration.json).
 | Upstream pin | 2026.07.04 |
 | Depth | `vlc-video` (watch/share URL → playable streams; skip playlists/search) |
 | Hand-ported | YouTube + batches 0–6 (71 dedicated extractors) |
-| Generated | 851 modules via webpage scrape (`src/extractor/generated/`) |
+| Generated | 850 modules via webpage scrape (`src/extractor/generated/`) |
 | Generic | catch-all `generic` registered last |
 
 ## Done criteria
@@ -109,6 +109,7 @@ Status: **complete**
 - [x] `abc`
 - [x] `bloomberg`
 - [x] `reuters`
+- [x] `foxnews`
 
 ## Batch 6 — Hosts / short clips
 
@@ -127,7 +128,7 @@ Status: **complete**
 
 ## Batches 7+ — Generated (webpage scrape)
 
-Status: **complete** (851 modules, status `partial`)
+Status: **complete** (850 modules, status `partial`)
 
 Regenerate with:
 

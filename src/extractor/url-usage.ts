@@ -404,6 +404,14 @@ export const URL_USAGE: Record<string, UrlUsageGuide> = {
     usage: "Paste a Reuters video URL.",
     examples: ["https://www.reuters.com/video/…"],
   },
+  foxnews: {
+    usage:
+      "Paste a Fox News video URL (`foxnews.com/video/{id}`), player URL (`video.foxnews.com/v/{id}`), or an article page with embedded video.",
+    examples: [
+      "https://www.foxnews.com/video/6328632286112",
+      "https://video.foxnews.com/v/6320653836112",
+    ],
+  },
 
   // Batch 6 — hosts / short clips
   googledrive: {

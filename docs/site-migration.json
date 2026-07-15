@@ -8,8 +8,8 @@
       "YoutubeIE"
     ]
   },
-  "handPortedCount": 71,
-  "generatedCount": 851,
+  "handPortedCount": 72,
+  "generatedCount": 850,
   "batches": [
     {
       "id": 0,
@@ -469,6 +469,13 @@
           "status": "ready",
           "ies": [
             "reutersIE"
+          ]
+        },
+        {
+          "id": "foxnews",
+          "status": "ready",
+          "ies": [
+            "foxnewsIE"
           ]
         }
       ]
@@ -2400,7 +2407,7 @@
     },
     {
       "id": 28,
-      "title": "Generated webpage scrape (footyroom\u2013francetv)",
+      "title": "Generated webpage scrape (footyroom\u2013freesound)",
       "status": "complete",
       "source": "generated",
       "modules": [
@@ -2445,14 +2452,6 @@
           "source": "generated"
         },
         {
-          "id": "foxnews",
-          "status": "partial",
-          "ies": [
-            "FoxNewsIE"
-          ],
-          "source": "generated"
-        },
-        {
           "id": "foxsports",
           "status": "partial",
           "ies": [
@@ -2483,15 +2482,7 @@
             "FranceTVIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 29,
-      "title": "Generated webpage scrape (freesound\u2013gamedevtv)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "freesound",
           "status": "partial",
@@ -2499,7 +2490,15 @@
             "FreesoundIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "title": "Generated webpage scrape (freespeech\u2013gamejolt)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "freespeech",
           "status": "partial",
@@ -2571,15 +2570,7 @@
             "GameDevTVDashboardIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 30,
-      "title": "Generated webpage scrape (gamejolt\u2013germanupa)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "gamejolt",
           "status": "partial",
@@ -2587,7 +2578,15 @@
             "GameJoltIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "title": "Generated webpage scrape (gamespot\u2013getcourseru)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "gamespot",
           "status": "partial",
@@ -2659,15 +2658,7 @@
             "GermanupaIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 31,
-      "title": "Generated webpage scrape (getcourseru\u2013godresource)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "getcourseru",
           "status": "partial",
@@ -2675,7 +2666,15 @@
             "GetCourseRuPlayerIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "title": "Generated webpage scrape (gettr\u2013godtube)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "gettr",
           "status": "partial",
@@ -2747,15 +2746,7 @@
             "GodResourceIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 32,
-      "title": "Generated webpage scrape (godtube\u2013harpodeon)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "godtube",
           "status": "partial",
@@ -2763,7 +2754,15 @@
             "GodTubeIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "title": "Generated webpage scrape (golem\u2013hbo)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "golem",
           "status": "partial",
@@ -2835,15 +2834,7 @@
             "HarpodeonIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 33,
-      "title": "Generated webpage scrape (hbo\u2013holodex)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "hbo",
           "status": "partial",
@@ -2851,7 +2842,15 @@
             "HBOIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "title": "Generated webpage scrape (hearthisat\u2013hotnewhiphop)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "hearthisat",
           "status": "partial",
@@ -2923,15 +2922,7 @@
             "HolodexIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 34,
-      "title": "Generated webpage scrape (hotnewhiphop\u2013huya)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "hotnewhiphop",
           "status": "partial",
@@ -2939,7 +2930,15 @@
             "HotNewHipHopIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "title": "Generated webpage scrape (hotstar\u2013hypem)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "hotstar",
           "status": "partial",
@@ -3011,15 +3010,7 @@
             "HuyaLiveIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 35,
-      "title": "Generated webpage scrape (hypem\u2013iltalehti)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "hypem",
           "status": "partial",
@@ -3027,7 +3018,15 @@
             "HypemIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "title": "Generated webpage scrape (hypergryph\u2013imdb)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "hypergryph",
           "status": "partial",
@@ -3099,15 +3098,7 @@
             "IltalehtiIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 36,
-      "title": "Generated webpage scrape (imdb\u2013itprotv)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "imdb",
           "status": "partial",
@@ -3115,7 +3106,15 @@
             "ImdbIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 36,
+      "title": "Generated webpage scrape (ina\u2013itv)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "ina",
           "status": "partial",
@@ -3187,15 +3186,7 @@
             "ITProTVIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 37,
-      "title": "Generated webpage scrape (itv\u2013jiosaavn)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "itv",
           "status": "partial",
@@ -3203,7 +3194,15 @@
             "ITVIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "title": "Generated webpage scrape (ivi\u2013joj)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "ivi",
           "status": "partial",
@@ -3275,15 +3274,7 @@
             "JioSaavnSongIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 38,
-      "title": "Generated webpage scrape (joj\u2013khanacademy)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "joj",
           "status": "partial",
@@ -3291,7 +3282,15 @@
             "JojIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "title": "Generated webpage scrape (jove\u2013kicker)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "jove",
           "status": "partial",
@@ -3363,15 +3362,7 @@
             "KhanAcademyIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 39,
-      "title": "Generated webpage scrape (kicker\u2013kukululive)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "kicker",
           "status": "partial",
@@ -3379,7 +3370,15 @@
             "KickerIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 39,
+      "title": "Generated webpage scrape (kickstarter\u2013kuwo)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "kickstarter",
           "status": "partial",
@@ -3451,15 +3450,7 @@
             "KukuluLiveIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 40,
-      "title": "Generated webpage scrape (kuwo\u2013lecture2go)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "kuwo",
           "status": "partial",
@@ -3467,7 +3458,15 @@
             "KuwoIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "title": "Generated webpage scrape (la7\u2013lecturio)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "la7",
           "status": "partial",
@@ -3539,15 +3538,7 @@
             "Lecture2GoIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 41,
-      "title": "Generated webpage scrape (lecturio\u2013likee)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "lecturio",
           "status": "partial",
@@ -3555,7 +3546,15 @@
             "LecturioIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 41,
+      "title": "Generated webpage scrape (leeco\u2013linkedin)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "leeco",
           "status": "partial",
@@ -3627,15 +3626,7 @@
             "LikeeIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 42,
-      "title": "Generated webpage scrape (linkedin\u2013loom)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "linkedin",
           "status": "partial",
@@ -3643,7 +3634,15 @@
             "LinkedInIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 42,
+      "title": "Generated webpage scrape (liputan6\u2013lovehomeporn)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "liputan6",
           "status": "partial",
@@ -3715,15 +3714,7 @@
             "LoomIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 43,
-      "title": "Generated webpage scrape (lovehomeporn\u2013mangomolo)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "lovehomeporn",
           "status": "partial",
@@ -3731,7 +3722,15 @@
             "LoveHomePornIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 43,
+      "title": "Generated webpage scrape (lrt\u2013manyvids)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "lrt",
           "status": "partial",
@@ -3803,15 +3802,7 @@
             "MangomoloVideoIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 44,
-      "title": "Generated webpage scrape (manyvids\u2013mdr)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "manyvids",
           "status": "partial",
@@ -3819,7 +3810,15 @@
             "ManyVidsIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 44,
+      "title": "Generated webpage scrape (maoritv\u2013medaltv)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "maoritv",
           "status": "partial",
@@ -3891,15 +3890,7 @@
             "MDRIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 45,
-      "title": "Generated webpage scrape (medaltv\u2013megaphone)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "medaltv",
           "status": "partial",
@@ -3907,7 +3898,15 @@
             "MedalTVIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 45,
+      "title": "Generated webpage scrape (mediaite\u2013megatvcom)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "mediaite",
           "status": "partial",
@@ -3979,15 +3978,7 @@
             "MegaphoneIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 46,
-      "title": "Generated webpage scrape (megatvcom\u2013mirrorcouk)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "megatvcom",
           "status": "partial",
@@ -3995,7 +3986,15 @@
             "MegaTVComIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 46,
+      "title": "Generated webpage scrape (meipai\u2013mit)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "meipai",
           "status": "partial",
@@ -4067,15 +4066,7 @@
             "MirrorCoUKIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 47,
-      "title": "Generated webpage scrape (mit\u2013moviepilot)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "mit",
           "status": "partial",
@@ -4083,7 +4074,15 @@
             "TechTVMITIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 47,
+      "title": "Generated webpage scrape (mixch\u2013movingimage)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "mixch",
           "status": "partial",
@@ -4155,15 +4154,7 @@
             "MoviepilotIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 48,
-      "title": "Generated webpage scrape (movingimage\u2013mxplayer)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "movingimage",
           "status": "partial",
@@ -4171,7 +4162,15 @@
             "MovingImageIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 48,
+      "title": "Generated webpage scrape (msn\u2013myspace)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "msn",
           "status": "partial",
@@ -4243,15 +4242,7 @@
             "MxplayerIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 49,
-      "title": "Generated webpage scrape (myspace\u2013nba)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "myspace",
           "status": "partial",
@@ -4259,7 +4250,15 @@
             "MySpaceIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 49,
+      "title": "Generated webpage scrape (myspass\u2013ndr)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "myspass",
           "status": "partial",
@@ -4331,15 +4330,7 @@
             "NBAWatchEmbedIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 50,
-      "title": "Generated webpage scrape (ndr\u2013newsy)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "ndr",
           "status": "partial",
@@ -4347,7 +4338,15 @@
             "NDRIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 50,
+      "title": "Generated webpage scrape (ndtv\u2013nexx)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "ndtv",
           "status": "partial",
@@ -4419,15 +4418,7 @@
             "NewsyIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 51,
-      "title": "Generated webpage scrape (nexx\u2013ninecninemedia)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "nexx",
           "status": "partial",
@@ -4435,7 +4426,15 @@
             "NexxIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 51,
+      "title": "Generated webpage scrape (nfb\u2013ninenews)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "nfb",
           "status": "partial",
@@ -4507,15 +4506,7 @@
             "NineCNineMediaIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 52,
-      "title": "Generated webpage scrape (ninenews\u2013novaplay)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "ninenews",
           "status": "partial",
@@ -4523,7 +4514,15 @@
             "NineNewsIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 52,
+      "title": "Generated webpage scrape (ninenow\u2013nowcanal)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "ninenow",
           "status": "partial",
@@ -4595,15 +4594,7 @@
             "NovaPlayIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 53,
-      "title": "Generated webpage scrape (nowcanal\u2013ntvde)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "nowcanal",
           "status": "partial",
@@ -4611,7 +4602,15 @@
             "NowCanalIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 53,
+      "title": "Generated webpage scrape (nowness\u2013ntvru)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "nowness",
           "status": "partial",
@@ -4683,15 +4682,7 @@
             "NTVDeIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 54,
-      "title": "Generated webpage scrape (ntvru\u2013oktoberfesttv)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "ntvru",
           "status": "partial",
@@ -4699,7 +4690,15 @@
             "NTVRuIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 54,
+      "title": "Generated webpage scrape (nubilesporn\u2013olympics)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "nubilesporn",
           "status": "partial",
@@ -4771,15 +4770,7 @@
             "OktoberfestTVIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 55,
-      "title": "Generated webpage scrape (olympics\u2013opencast)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "olympics",
           "status": "partial",
@@ -4787,7 +4778,15 @@
             "OlympicsReplayIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 55,
+      "title": "Generated webpage scrape (omnyfm\u2013openrec)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "omnyfm",
           "status": "partial",
@@ -4859,15 +4858,7 @@
             "OpencastIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 56,
-      "title": "Generated webpage scrape (openrec\u2013parlview)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "openrec",
           "status": "partial",
@@ -4875,7 +4866,15 @@
             "OpenRecIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 56,
+      "title": "Generated webpage scrape (orf\u2013parti)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "orf",
           "status": "partial",
@@ -4947,15 +4946,7 @@
             "ParlviewIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 57,
-      "title": "Generated webpage scrape (parti\u2013phoenix)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "parti",
           "status": "partial",
@@ -4963,7 +4954,15 @@
             "PartiVideoIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 57,
+      "title": "Generated webpage scrape (pearvideo\u2013photobucket)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "pearvideo",
           "status": "partial",
@@ -5035,15 +5034,7 @@
             "PhoenixIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 58,
-      "title": "Generated webpage scrape (photobucket\u2013playsuisse)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "photobucket",
           "status": "partial",
@@ -5051,7 +5042,15 @@
             "PhotobucketIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 58,
+      "title": "Generated webpage scrape (pialive\u2013playtvak)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "pialive",
           "status": "partial",
@@ -5123,15 +5122,7 @@
             "PlaySuisseIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 59,
-      "title": "Generated webpage scrape (playtvak\u2013polskieradio)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "playtvak",
           "status": "partial",
@@ -5139,7 +5130,15 @@
             "PlaytvakIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 59,
+      "title": "Generated webpage scrape (pluralsight\u2013popcorntimes)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "pluralsight",
           "status": "partial",
@@ -5211,15 +5210,7 @@
             "PolskieRadioLegacyIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 60,
-      "title": "Generated webpage scrape (popcorntimes\u2013prankcast)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "popcorntimes",
           "status": "partial",
@@ -5227,7 +5218,15 @@
             "PopcorntimesIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 60,
+      "title": "Generated webpage scrape (popcorntv\u2013premiershiprugby)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "popcorntv",
           "status": "partial",
@@ -5299,15 +5298,7 @@
             "PrankCastIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 61,
-      "title": "Generated webpage scrape (premiershiprugby\u2013r7)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "premiershiprugby",
           "status": "partial",
@@ -5315,7 +5306,15 @@
             "PremiershipRugbyIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 61,
+      "title": "Generated webpage scrape (presstv\u2013radiko)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "presstv",
           "status": "partial",
@@ -5387,15 +5386,7 @@
             "R7IE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 62,
-      "title": "Generated webpage scrape (radiko\u2013rai)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "radiko",
           "status": "partial",
@@ -5403,7 +5394,15 @@
             "RadikoIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 62,
+      "title": "Generated webpage scrape (radiocanada\u2013raywenderlich)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "radiocanada",
           "status": "partial",
@@ -5475,15 +5474,7 @@
             "RaiPlayIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 63,
-      "title": "Generated webpage scrape (raywenderlich\u2013restudy)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "raywenderlich",
           "status": "partial",
@@ -5491,7 +5482,15 @@
             "RayWenderlichIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 63,
+      "title": "Generated webpage scrape (rbgtum\u2013ridehome)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "rbgtum",
           "status": "partial",
@@ -5563,15 +5562,7 @@
             "RestudyIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 64,
-      "title": "Generated webpage scrape (ridehome\u2013rtl2)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "ridehome",
           "status": "partial",
@@ -5579,7 +5570,15 @@
             "RideHomeIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 64,
+      "title": "Generated webpage scrape (rinsefm\u2013rtlnl)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "rinsefm",
           "status": "partial",
@@ -5651,15 +5650,7 @@
             "RTL2IE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 65,
-      "title": "Generated webpage scrape (rtlnl\u2013rudovideo)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "rtlnl",
           "status": "partial",
@@ -5667,7 +5658,15 @@
             "RtlNlIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 65,
+      "title": "Generated webpage scrape (rtnews\u2013rule34video)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "rtnews",
           "status": "partial",
@@ -5739,15 +5738,7 @@
             "RudoVideoIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 66,
-      "title": "Generated webpage scrape (rule34video\u2013sauceplus)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "rule34video",
           "status": "partial",
@@ -5755,7 +5746,15 @@
             "Rule34VideoIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 66,
+      "title": "Generated webpage scrape (rutube\u2013sbs)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "rutube",
           "status": "partial",
@@ -5827,15 +5826,7 @@
             "SaucePlusIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 67,
-      "title": "Generated webpage scrape (sbs\u2013sejmpl)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "sbs",
           "status": "partial",
@@ -5843,7 +5834,15 @@
             "SBSIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 67,
+      "title": "Generated webpage scrape (sbscokr\u2013sen)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "sbscokr",
           "status": "partial",
@@ -5915,15 +5914,7 @@
             "SejmIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 68,
-      "title": "Generated webpage scrape (sen\u2013shemaroome)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "sen",
           "status": "partial",
@@ -5931,7 +5922,15 @@
             "SenIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 68,
+      "title": "Generated webpage scrape (senalcolombia\u2013shiey)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "senalcolombia",
           "status": "partial",
@@ -6003,15 +6002,7 @@
             "ShemarooMeIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 69,
-      "title": "Generated webpage scrape (shiey\u2013skynewsarabia)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "shiey",
           "status": "partial",
@@ -6019,7 +6010,15 @@
             "ShieyIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 69,
+      "title": "Generated webpage scrape (showroomlive\u2013skynewsau)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "showroomlive",
           "status": "partial",
@@ -6091,15 +6090,7 @@
             "SkyNewsArabiaIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 70,
-      "title": "Generated webpage scrape (skynewsau\u2013southpark)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "skynewsau",
           "status": "partial",
@@ -6107,7 +6098,15 @@
             "SkyNewsAUIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 70,
+      "title": "Generated webpage scrape (slideshare\u2013sovietscloset)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "slideshare",
           "status": "partial",
@@ -6179,15 +6178,7 @@
             "SouthParkIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 71,
-      "title": "Generated webpage scrape (sovietscloset\u2013srmediathek)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "sovietscloset",
           "status": "partial",
@@ -6195,7 +6186,15 @@
             "SovietsClosetIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 71,
+      "title": "Generated webpage scrape (spankbang\u2013stacommu)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "spankbang",
           "status": "partial",
@@ -6267,15 +6266,7 @@
             "SRMediathekIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 72,
-      "title": "Generated webpage scrape (stacommu\u2013stripchat)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "stacommu",
           "status": "partial",
@@ -6283,7 +6274,15 @@
             "StacommuVODIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 72,
+      "title": "Generated webpage scrape (stageplus\u2013stv)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "stageplus",
           "status": "partial",
@@ -6355,15 +6354,7 @@
             "StripchatIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 73,
-      "title": "Generated webpage scrape (stv\u2013tarangplus)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "stv",
           "status": "partial",
@@ -6371,7 +6362,15 @@
             "STVPlayerIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 73,
+      "title": "Generated webpage scrape (subsplash\u2013tass)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "subsplash",
           "status": "partial",
@@ -6443,15 +6442,7 @@
             "TarangPlusVideoIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 74,
-      "title": "Generated webpage scrape (tass\u2013tele13)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "tass",
           "status": "partial",
@@ -6459,7 +6450,15 @@
             "TassIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 74,
+      "title": "Generated webpage scrape (tbs\u2013tele5)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "tbs",
           "status": "partial",
@@ -6531,15 +6530,7 @@
             "Tele13IE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 75,
-      "title": "Generated webpage scrape (tele5\u2013teletask)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "tele5",
           "status": "partial",
@@ -6547,7 +6538,15 @@
             "Tele5IE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 75,
+      "title": "Generated webpage scrape (telebruxelles\u2013telewebion)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "telebruxelles",
           "status": "partial",
@@ -6619,15 +6618,7 @@
             "TeleTaskIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 76,
-      "title": "Generated webpage scrape (telewebion\u2013thehighwire)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "telewebion",
           "status": "partial",
@@ -6635,7 +6626,15 @@
             "TelewebionIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 76,
+      "title": "Generated webpage scrape (tencent\u2013theintercept)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "tencent",
           "status": "partial",
@@ -6707,15 +6706,7 @@
             "TheHighWireIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 77,
-      "title": "Generated webpage scrape (theintercept\u2013tmz)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "theintercept",
           "status": "partial",
@@ -6723,7 +6714,15 @@
             "TheInterceptIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 77,
+      "title": "Generated webpage scrape (thestar\u2013tnaflix)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "thestar",
           "status": "partial",
@@ -6795,15 +6794,7 @@
             "TMZIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 78,
-      "title": "Generated webpage scrape (tnaflix\u2013trtworld)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "tnaflix",
           "status": "partial",
@@ -6811,7 +6802,15 @@
             "TNAFlixNetworkEmbedIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 78,
+      "title": "Generated webpage scrape (toggle\u2013trueid)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "toggle",
           "status": "partial",
@@ -6883,15 +6882,7 @@
             "TrtWorldIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 79,
-      "title": "Generated webpage scrape (trueid\u2013tv24ua)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "trueid",
           "status": "partial",
@@ -6899,7 +6890,15 @@
             "TrueIDIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 79,
+      "title": "Generated webpage scrape (trunews\u2013tv2dk)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "trunews",
           "status": "partial",
@@ -6971,15 +6970,7 @@
             "TV24UAVideoIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 80,
-      "title": "Generated webpage scrape (tv2dk\u2013tvigle)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "tv2dk",
           "status": "partial",
@@ -6987,7 +6978,15 @@
             "TV2DKIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 80,
+      "title": "Generated webpage scrape (tv2hu\u2013tviplayer)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "tv2hu",
           "status": "partial",
@@ -7059,15 +7058,7 @@
             "TvigleIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 81,
-      "title": "Generated webpage scrape (tviplayer\u2013twentymin)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "tviplayer",
           "status": "partial",
@@ -7075,7 +7066,15 @@
             "TVIPlayerIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 81,
+      "title": "Generated webpage scrape (tvn24\u2013twentythreevideo)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "tvn24",
           "status": "partial",
@@ -7147,15 +7146,7 @@
             "TwentyMinutenIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 82,
-      "title": "Generated webpage scrape (twentythreevideo\u2013unitednations)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "twentythreevideo",
           "status": "partial",
@@ -7163,7 +7154,15 @@
             "TwentyThreeVideoIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 82,
+      "title": "Generated webpage scrape (twitcasting\u2013unity)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "twitcasting",
           "status": "partial",
@@ -7235,15 +7234,7 @@
             "UnitedNationsWebTvIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 83,
-      "title": "Generated webpage scrape (unity\u2013varzesh3)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "unity",
           "status": "partial",
@@ -7251,7 +7242,15 @@
             "UnityIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 83,
+      "title": "Generated webpage scrape (uol\u2013vbox7)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "uol",
           "status": "partial",
@@ -7323,15 +7322,7 @@
             "Varzesh3IE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 84,
-      "title": "Generated webpage scrape (vbox7\u2013videoken)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "vbox7",
           "status": "partial",
@@ -7339,7 +7330,15 @@
             "Vbox7IE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 84,
+      "title": "Generated webpage scrape (veo\u2013videopress)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "veo",
           "status": "partial",
@@ -7411,15 +7410,7 @@
             "VideoKenPlayerIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 85,
-      "title": "Generated webpage scrape (videopress\u2013viqeo)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "videopress",
           "status": "partial",
@@ -7427,7 +7418,15 @@
             "VideoPressIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 85,
+      "title": "Generated webpage scrape (vidflex\u2013visir)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "vidflex",
           "status": "partial",
@@ -7499,15 +7498,7 @@
             "ViqeoIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 86,
-      "title": "Generated webpage scrape (visir\u2013vtv)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "visir",
           "status": "partial",
@@ -7515,7 +7506,15 @@
             "VisirIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 86,
+      "title": "Generated webpage scrape (viu\u2013walla)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "viu",
           "status": "partial",
@@ -7587,15 +7586,7 @@
             "VTVGoIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 87,
-      "title": "Generated webpage scrape (walla\u2013wevidi)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "walla",
           "status": "partial",
@@ -7603,7 +7594,15 @@
             "WallaIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 87,
+      "title": "Generated webpage scrape (washingtonpost\u2013whowatch)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "washingtonpost",
           "status": "partial",
@@ -7675,15 +7674,7 @@
             "WeVidiIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 88,
-      "title": "Generated webpage scrape (whowatch\u2013wsj)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "whowatch",
           "status": "partial",
@@ -7691,7 +7682,15 @@
             "WhoWatchIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 88,
+      "title": "Generated webpage scrape (whyp\u2013wwe)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "whyp",
           "status": "partial",
@@ -7763,15 +7762,7 @@
             "WSJIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 89,
-      "title": "Generated webpage scrape (wwe\u2013xxxymovies)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "wwe",
           "status": "partial",
@@ -7779,7 +7770,15 @@
             "WWEIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 89,
+      "title": "Generated webpage scrape (wykop\u2013yahoo)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "wykop",
           "status": "partial",
@@ -7851,15 +7850,7 @@
             "XXXYMoviesIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 90,
-      "title": "Generated webpage scrape (yahoo\u2013zaiko)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "yahoo",
           "status": "partial",
@@ -7867,7 +7858,15 @@
             "YahooIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 90,
+      "title": "Generated webpage scrape (yandexvideo\u2013zan)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "yandexvideo",
           "status": "partial",
@@ -7939,15 +7938,7 @@
             "ZaikoIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 91,
-      "title": "Generated webpage scrape (zan\u2013zoom)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "zan",
           "status": "partial",
@@ -7955,7 +7946,15 @@
             "ZanIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 91,
+      "title": "Generated webpage scrape (zapiks\u2013zype)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "zapiks",
           "status": "partial",
@@ -8027,15 +8026,7 @@
             "ZoomIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 92,
-      "title": "Generated webpage scrape (zype\u2013zype)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "zype",
           "status": "partial",
@@ -8047,7 +8038,7 @@
       ]
     },
     {
-      "id": 93,
+      "id": 92,
       "title": "Generic fallback",
       "status": "complete",
       "modules": [

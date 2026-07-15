@@ -26,7 +26,7 @@ HAND_PORTED = {
     "audiomack", "applepodcasts", "mixcloud", "soundgasm", "acast",
     "art19", "yandexmusic", "audius", "bandlab", "reverbnation",
     "archiveorg", "bbc", "ard", "arte", "pbs", "cnn", "nbc", "abc",
-    "bloomberg", "reuters",
+    "bloomberg", "reuters", "foxnews",
     "googledrive", "dropbox", "imgur", "redgifs", "streamable", "box",
     "yandexdisk", "mediafire", "pixeldrain", "streamja",
 }
@@ -224,7 +224,7 @@ HAND_BATCHES = [
         "title": "News / public broadcasters",
         "modules": [
             "archiveorg", "bbc", "ard", "arte", "pbs",
-            "cnn", "nbc", "abc", "bloomberg", "reuters",
+            "cnn", "nbc", "abc", "bloomberg", "reuters", "foxnews",
         ],
     },
     {

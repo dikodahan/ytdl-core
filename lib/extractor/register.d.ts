@@ -59,6 +59,7 @@ import { NbcIE } from "./nbc";
 import { AbcIE } from "./abc";
 import { BloombergIE } from "./bloomberg";
 import { ReutersIE } from "./reuters";
+import { FoxNewsIE } from "./foxnews";
 import { GoogleDriveIE } from "./googledrive";
 import { DropboxIE } from "./dropbox";
 import { ImgurIE } from "./imgur";
@@ -76,6 +77,6 @@ export { VimeoIE, TwitchIE, TiktokIE, TwitterIE, InstagramIE, FacebookIE, Reddit
 export { BandcampIE, RumbleIE, KickIE, PatreonIE, BlueskyIE, BitchuteIE, NewgroundsIE, NinegagIE, CoubIE, PeertubeIE, };
 export { NiconicoIE, AfreecaTVIE, NaverIE, IqiyiIE, YoukuIE, FC2IE, WeiboIE, XiaoHongShuIE, VKIE, OdnoklassnikiIE, };
 export { AudiomackIE, ApplePodcastsIE, MixcloudIE, SoundgasmIE, AcastIE, Art19IE, YandexMusicIE, AudiusIE, BandlabIE, ReverbNationIE, };
-export { ArchiveOrgIE, BbcIE, ArdIE, ArteIE, PbsIE, CnnIE, NbcIE, AbcIE, BloombergIE, ReutersIE, };
+export { ArchiveOrgIE, BbcIE, ArdIE, ArteIE, PbsIE, CnnIE, NbcIE, AbcIE, BloombergIE, ReutersIE, FoxNewsIE, };
 export { GoogleDriveIE, DropboxIE, ImgurIE, RedGifsIE, StreamableIE, BoxIE, YandexDiskIE, MediaFireIE, PixeldrainIE, StreamjaIE, };
 //# sourceMappingURL=register.d.ts.map
