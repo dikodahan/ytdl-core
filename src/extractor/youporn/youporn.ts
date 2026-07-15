@@ -253,21 +253,36 @@ export class YouPornIE extends InfoExtractor {
     options: { limit?: number } = {},
   ): Promise<CategoryListResult> {
     this.setAgeVerifiedCookie();
-    const indexUrl = this.listingUrl(url);
-    const webpage = await this.request.text(indexUrl, {
-      headers: { Referer: "https://www.youporn.com/" },
-    });
-    let entries = parseYouPornCategories(webpage, indexUrl);
-    if (!entries.length) {
-      throw new Error(`youporn: no categories found at ${indexUrl}`);
+    const normalized = this.listingUrl(url);
+    const targets =
+      normalized === "https://www.youporn.com/" ||
+      normalized === "https://www.youporn.com/categories/"
+        ? ["https://www.youporn.com/", "https://www.youporn.com/categories/"]
+        : [normalized];
+
+    let lastError = "no categories found";
+    for (const indexUrl of targets) {
+      try {
+        const webpage = await this.request.text(indexUrl, {
+          headers: { Referer: "https://www.youporn.com/" },
+        });
+        let entries = parseYouPornCategories(webpage, indexUrl);
+        if (!entries.length) {
+          lastError = `no categories found at ${indexUrl}`;
+          continue;
+        }
+        if (options.limit && options.limit > 0) {
+          entries = entries.slice(0, options.limit);
+        }
+        return {
+          extractor: YouPornIE.IE_NAME,
+          webpage_url: indexUrl,
+          entries,
+        };
+      } catch (err) {
+        lastError = err instanceof Error ? err.message : String(err);
+      }
     }
-    if (options.limit && options.limit > 0) {
-      entries = entries.slice(0, options.limit);
-    }
-    return {
-      extractor: YouPornIE.IE_NAME,
-      webpage_url: indexUrl,
-      entries,
-    };
+    throw new Error(`youporn: ${lastError}`);
   }
 }
