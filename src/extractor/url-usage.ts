@@ -14,6 +14,11 @@ export interface UrlUsageGuide {
   examples: string[];
   /** Optional caveats (geo, cookies, pseudo-URLs) */
   notes?: string;
+  /** Default listing URL when `POST /api/v1/list` omits `url`. */
+  defaultUrl?: string;
+  /** Default categories index for `POST /api/v1/list-categories`. */
+  categoriesDefaultUrl?: string;
+  categoriesIndexUrl?: string;
 }
 
 export const URL_USAGE: Record<string, UrlUsageGuide> = {
@@ -486,10 +491,14 @@ export const LIST_URL_USAGE: Record<string, UrlUsageGuide> = {
     usage:
       "Paste a YouPorn browse URL: homepage, category, channel, tag (`porntags/…`), pornstar, or collection listing.",
     examples: [
-      "https://www.youporn.com/category/amateur/",
-      "https://www.youporn.com/pornstar/daynia/",
+      "https://www.youporn.com/porntags/milf/",
+      "https://www.youporn.com/watch/194740131/",
     ],
-    notes: "Returns numeric video ids and `https://www.youporn.com/watch/{id}/` links. Optional `page` query param.",
+    defaultUrl: "https://www.youporn.com/porntags/milf/",
+    categoriesDefaultUrl: "https://www.youporn.com/",
+    categoriesIndexUrl: "https://www.youporn.com/",
+    notes:
+      "Returns numeric video ids and `https://www.youporn.com/watch/{id}/` links. Pagination uses `?page=` (hash fragments like `#1` are ignored).",
   },
   youjizz: {
     usage: "Paste a YouJizz category or newest-clips listing page (`/categories/{slug}-{page}.html`).",
@@ -526,6 +535,9 @@ export function withUrlUsage(info: ExtractorInfo): ExtractorInfo {
           listUrlUsage: listGuide?.usage,
           listExamples: listGuide?.examples,
           listNotes: listGuide?.notes,
+          listDefaultUrl: listGuide?.defaultUrl,
+          categoriesDefaultUrl: listGuide?.categoriesDefaultUrl,
+          categoriesIndexUrl: listGuide?.categoriesIndexUrl,
         }
       : {}),
   };

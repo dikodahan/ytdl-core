@@ -1,6 +1,7 @@
 import { type Readable } from "stream";
 import type { InfoDict, YoutubeDLParams } from "./types";
 import type { ListVideosOptions, VideoListResult } from "./video-list";
+import type { CategoryListResult, ListCategoriesOptions } from "./category-list";
 import type { ExtractorInfo } from "./info-extractor";
 import { RequestClient } from "../networking/request";
 import { type DownloadOptions } from "../downloader/http";
@@ -17,6 +18,7 @@ export declare class YoutubeDL {
     };
     extractInfo(url: string, _download?: boolean): Promise<InfoDict>;
     listVideos(url: string, options?: ListVideosOptions): Promise<VideoListResult>;
+    listCategories(url?: string, options?: ListCategoriesOptions): Promise<CategoryListResult>;
     download(url: string, options?: DownloadOptions): Readable;
     close(): Promise<void>;
 }

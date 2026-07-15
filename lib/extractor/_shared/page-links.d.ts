@@ -7,6 +7,14 @@ export declare function stripHtmlText(raw: string): string;
 export declare function dedupeEntries(entries: VideoListEntry[]): VideoListEntry[];
 export declare function parseYouPornWatchEntries(html: string, pageUrl: string): VideoListEntry[];
 export declare function parseYouPornNextPage(html: string, pageUrl: string): string | null;
+export interface CategoryListEntry {
+    id: string;
+    url: string;
+    title?: string | null;
+    display_id?: string | null;
+}
+/** Parse browse categories/tags from the YouPorn homepage or legacy index HTML. */
+export declare function parseYouPornCategories(html: string, pageUrl: string): CategoryListEntry[];
 export declare function parseYouJizzEntries(html: string, pageUrl: string): VideoListEntry[];
 export declare function parseYouJizzNextPage(html: string, pageUrl: string): string | null;
 //# sourceMappingURL=page-links.d.ts.map

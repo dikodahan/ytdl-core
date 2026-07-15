@@ -13,6 +13,11 @@ export interface UrlUsageGuide {
     examples: string[];
     /** Optional caveats (geo, cookies, pseudo-URLs) */
     notes?: string;
+    /** Default listing URL when `POST /api/v1/list` omits `url`. */
+    defaultUrl?: string;
+    /** Default categories index for `POST /api/v1/list-categories`. */
+    categoriesDefaultUrl?: string;
+    categoriesIndexUrl?: string;
 }
 export declare const URL_USAGE: Record<string, UrlUsageGuide>;
 /** Listing-page guides for `POST /api/v1/list` (video id enumeration). */

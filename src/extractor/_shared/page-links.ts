@@ -55,6 +55,11 @@ export function parseYouPornWatchEntries(html: string, pageUrl: string): VideoLi
 }
 
 export function parseYouPornNextPage(html: string, pageUrl: string): string | null {
+  const relNext = html.match(/<link\b[^>]*\brel=["']next["'][^>]*\bhref=["'](?<href>[^"']+)["']/i);
+  if (relNext?.groups?.href) {
+    return absPageUrl(relNext.groups.href, pageUrl);
+  }
+
   const current = new URL(pageUrl);
   const nextInNav = html.match(
     /<a\b[^>]*class=["'][^"']*pagination[^"']*["'][^>]*\bhref=["'](?<href>[^"']+)["']/gi,
@@ -73,6 +78,99 @@ export function parseYouPornNextPage(html: string, pageUrl: string): string | nu
   }
   const m = html.match(/<a\b[^>]*\bhref=["'](?<href>[^"']+)["'][^>]*>\s*Next/i);
   return m?.groups?.href ? absPageUrl(m.groups.href, pageUrl) : null;
+}
+
+export interface CategoryListEntry {
+  id: string;
+  url: string;
+  title?: string | null;
+  display_id?: string | null;
+}
+
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&apos;/g, "'");
+}
+
+function categorySlugFromHref(href: string, kind: "category" | "porntags"): string | null {
+  const m = href.match(kind === "porntags" ? /^\/porntags\/([^/?#]+)/i : /^\/category\/([^/?#]+)/i);
+  return m?.[1]?.replace(/\/+$/g, "") || null;
+}
+
+function dedupeCategoryEntries(entries: CategoryListEntry[]): CategoryListEntry[] {
+  const byId = new Map<string, CategoryListEntry>();
+  for (const entry of entries) {
+    const existing = byId.get(entry.id);
+    if (!existing) {
+      byId.set(entry.id, entry);
+      continue;
+    }
+    if (entry.url.includes("/porntags/") && !existing.url.includes("/porntags/")) {
+      byId.set(entry.id, entry);
+    }
+  }
+  return [...byId.values()];
+}
+
+/** Parse browse categories/tags from the YouPorn homepage or legacy index HTML. */
+export function parseYouPornCategories(html: string, pageUrl: string): CategoryListEntry[] {
+  const entries: CategoryListEntry[] = [];
+
+  for (const m of html.matchAll(
+    /<a\b[^>]*\bhref=["'](?<href>\/category\/[^"'#?]+)\/?["'][^>]*class=["'][^"']*categoryBox[^"']*["'][\s\S]*?alt=["'](?<title>[^"']+)["']/gi,
+  )) {
+    const href = m.groups?.href;
+    const title = m.groups?.title;
+    if (!href) continue;
+    const slug = categorySlugFromHref(href, "category");
+    if (!slug) continue;
+    entries.push({
+      id: slug,
+      title: title ? decodeHtmlEntities(title) : slug,
+      url: absPageUrl(href.endsWith("/") ? href : `${href}/`, pageUrl),
+      display_id: slug,
+    });
+  }
+
+  for (const m of html.matchAll(
+    /<a\b(?=[^>]*\bclass=["'][^"']*(?:bubble-porntag|bubble-button)[^"']*["'])[^>]*\bhref=["'](?<href>\/porntags\/[^"'#?]+)\/?["'][^>]*>(?<title>[^<]+)/gi,
+  )) {
+    const href = m.groups?.href;
+    const title = m.groups?.title?.trim();
+    if (!href) continue;
+    const slug = categorySlugFromHref(href, "porntags");
+    if (!slug) continue;
+    entries.push({
+      id: slug,
+      title: title ? decodeHtmlEntities(title) : slug,
+      url: absPageUrl(href.endsWith("/") ? href : `${href}/`, pageUrl),
+      display_id: slug,
+    });
+  }
+
+  for (const m of html.matchAll(
+    /<a\b(?=[^>]*(?:class=["'][^"']*(?:menu_elem_text|top-trending-cat)[^"']*["']|data-menu-link-name))[^>]*\bhref=["'](?<href>\/category\/[^"'#?]+)\/?["']/gi,
+  )) {
+    const href = m.groups?.href;
+    if (!href) continue;
+    const slug = categorySlugFromHref(href, "category");
+    if (!slug) continue;
+    entries.push({
+      id: slug,
+      title: slug,
+      url: absPageUrl(href.endsWith("/") ? href : `${href}/`, pageUrl),
+      display_id: slug,
+    });
+  }
+
+  return dedupeCategoryEntries(entries);
 }
 
 export function parseYouJizzEntries(html: string, pageUrl: string): VideoListEntry[] {

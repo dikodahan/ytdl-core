@@ -12,7 +12,8 @@ const { listVideos } = require("../../lib/index");
 registerBuiltInExtractors();
 
 const LIST_CASES = [
-  ["youporn", "https://www.youporn.com/category/amateur/"],
+  ["youporn", "https://www.youporn.com/porntags/milf/"],
+  ["youporn-category", "https://www.youporn.com/category/amateur/"],
   ["youjizz", "https://www.youjizz.com/categories/teen-1.html"],
 ];
 
@@ -24,9 +25,10 @@ describe("video list API", () => {
 
   for (const [name, url] of LIST_CASES) {
     it(`${name} listUrlSupported matches fixture`, () => {
-      const IE = resolveListExtractor(url, name);
+      const service = name.startsWith("youporn") ? "youporn" : name;
+      const IE = resolveListExtractor(url, service);
       assert.ok(IE);
-      assert.equal(IE.IE_NAME, name);
+      assert.equal(IE.IE_NAME, service);
     });
   }
 
@@ -40,14 +42,15 @@ describe("video list API", () => {
 
   for (const [name, url] of LIST_CASES) {
     it(`${name} listVideos returns ids (live)`, { timeout: 30_000 }, async () => {
-      const result = await listVideos(url, { service: name, limit: 5 });
-      assert.equal(result.extractor, name);
+      const service = name.startsWith("youporn") ? "youporn" : name;
+      const result = await listVideos(url, { service, limit: 5 });
+      assert.equal(result.extractor, service);
       assert.ok(result.entries.length >= 1, "expected at least one entry");
       for (const entry of result.entries) {
         assert.match(entry.url, /^https?:\/\//);
         assert.match(entry.id, /^\d+$/);
-        if (name === "youporn") assert.match(entry.url, /youporn\.com\/watch\//);
-        if (name === "youjizz") assert.match(entry.url, /youjizz\.com\/videos\//);
+        if (service === "youporn") assert.match(entry.url, /youporn\.com\/watch\//);
+        if (service === "youjizz") assert.match(entry.url, /youjizz\.com\/videos\//);
       }
     });
   }

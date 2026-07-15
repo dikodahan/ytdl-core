@@ -2,7 +2,9 @@ import { Cookie } from "tough-cookie";
 import { InfoExtractor, type ExtractorInfo } from "../../core/info-extractor";
 import type { Format, InfoDict } from "../../core/types";
 import type { ListVideosOptions, VideoListResult } from "../../core/video-list";
+import type { CategoryListResult } from "../../core/category-list";
 import {
+  parseYouPornCategories,
   parseYouPornNextPage,
   parseYouPornWatchEntries,
 } from "../_shared/page-links";
@@ -70,7 +72,12 @@ export class YouPornIE extends InfoExtractor {
 
   private listingUrl(url: string, page?: number): string {
     const u = new URL(url.startsWith("http") ? url : `https://www.youporn.com${url}`);
-    if (page && page > 0) u.searchParams.set("page", String(page));
+    u.hash = "";
+    if (page && page > 0) {
+      u.searchParams.set("page", String(page));
+    } else {
+      u.searchParams.delete("page");
+    }
     return u.toString();
   }
 
@@ -238,6 +245,29 @@ export class YouPornIE extends InfoExtractor {
       page: pageNum,
       entries,
       next_page_url: parseYouPornNextPage(webpage, fetchUrl),
+    };
+  }
+
+  async listCategories(
+    url = "https://www.youporn.com/",
+    options: { limit?: number } = {},
+  ): Promise<CategoryListResult> {
+    this.setAgeVerifiedCookie();
+    const indexUrl = this.listingUrl(url);
+    const webpage = await this.request.text(indexUrl, {
+      headers: { Referer: "https://www.youporn.com/" },
+    });
+    let entries = parseYouPornCategories(webpage, indexUrl);
+    if (!entries.length) {
+      throw new Error(`youporn: no categories found at ${indexUrl}`);
+    }
+    if (options.limit && options.limit > 0) {
+      entries = entries.slice(0, options.limit);
+    }
+    return {
+      extractor: YouPornIE.IE_NAME,
+      webpage_url: indexUrl,
+      entries,
     };
   }
 }

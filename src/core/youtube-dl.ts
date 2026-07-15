@@ -1,7 +1,8 @@
 import { PassThrough, type Readable } from "stream";
-import { listExtractors, resolveExtractor, resolveListExtractor, createVideoLister } from "./registry";
+import { listExtractors, resolveExtractor, resolveListExtractor, createVideoLister, findExtractorByName } from "./registry";
 import type { InfoDict, YoutubeDLParams } from "./types";
 import type { ListVideosOptions, VideoListResult } from "./video-list";
+import type { CategoryListResult, ListCategoriesOptions } from "./category-list";
 import type { ExtractorInfo } from "./info-extractor";
 import { RequestClient, createAgent, createProxyAgent } from "../networking/request";
 import { selectFormats } from "./format-select";
@@ -95,6 +96,22 @@ export class YoutubeDL {
     }
     const lister = createVideoLister(IE, this.params, this.request);
     return lister.listVideos(url, options);
+  }
+
+  async listCategories(
+    url?: string,
+    options: ListCategoriesOptions = {},
+  ): Promise<CategoryListResult> {
+    const site = this.params.site || this.params.service || "youporn";
+    const IE = findExtractorByName(site);
+    if (!IE || typeof (IE.prototype as { listCategories?: unknown }).listCategories !== "function") {
+      throw new Error(`Service "${site}" does not support listing categories`);
+    }
+    const lister = new IE(this.params, this.request) as unknown as {
+      listCategories: (target: string, opts: ListCategoriesOptions) => Promise<CategoryListResult>;
+    };
+    const target = url?.trim() || "https://www.youporn.com/";
+    return lister.listCategories(target, options);
   }
 
   download(url: string, options: DownloadOptions = {}): Readable {

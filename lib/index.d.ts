@@ -3,6 +3,7 @@ export { registerExtractor, listExtractors, listExtractorInfo, listListCapableEx
 export { InfoExtractor } from "./core/info-extractor";
 export type { ExtractorInfo, ExtractorOptionDef, MigrationStatus, VideoLister, ListCapableExtractorConstructor, } from "./core/info-extractor";
 export type { VideoListEntry, VideoListResult, ListVideosOptions } from "./core/video-list";
+export type { CategoryListResult, ListCategoriesOptions } from "./core/category-list";
 export { registerBuiltInExtractors } from "./extractor/register";
 export { URL_USAGE, LIST_URL_USAGE, withUrlUsage } from "./extractor/url-usage";
 export type { UrlUsageGuide } from "./extractor/url-usage";
