@@ -29,6 +29,7 @@ HAND_PORTED = {
     "bloomberg", "reuters", "foxnews",
     "googledrive", "dropbox", "imgur", "redgifs", "streamable", "box",
     "yandexdisk", "mediafire", "pixeldrain", "streamja",
+    "youporn", "youjizz",
 }
 
 INFRA = {
@@ -234,6 +235,11 @@ HAND_BATCHES = [
             "googledrive", "dropbox", "imgur", "redgifs", "streamable",
             "box", "yandexdisk", "mediafire", "pixeldrain", "streamja",
         ],
+    },
+    {
+        "id": 7,
+        "title": "Hand-ported streaming",
+        "modules": ["youporn", "youjizz"],
     },
 ]
 

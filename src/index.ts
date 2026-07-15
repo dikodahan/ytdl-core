@@ -1,16 +1,25 @@
-export { YoutubeDL, extractInfo } from "./core/youtube-dl";
+export { YoutubeDL, extractInfo, listVideos } from "./core/youtube-dl";
 export {
   registerExtractor,
   listExtractors,
   listExtractorInfo,
+  listListCapableExtractors,
   findExtractor,
   findExtractorByName,
   resolveExtractor,
+  resolveListExtractor,
 } from "./core/registry";
 export { InfoExtractor } from "./core/info-extractor";
-export type { ExtractorInfo, ExtractorOptionDef, MigrationStatus } from "./core/info-extractor";
+export type {
+  ExtractorInfo,
+  ExtractorOptionDef,
+  MigrationStatus,
+  VideoLister,
+  ListCapableExtractorConstructor,
+} from "./core/info-extractor";
+export type { VideoListEntry, VideoListResult, ListVideosOptions } from "./core/video-list";
 export { registerBuiltInExtractors } from "./extractor/register";
-export { URL_USAGE, withUrlUsage } from "./extractor/url-usage";
+export { URL_USAGE, LIST_URL_USAGE, withUrlUsage } from "./extractor/url-usage";
 export type { UrlUsageGuide } from "./extractor/url-usage";
 export { loadMigrationTracker, migrationStatusBySite } from "./migration/tracker";
 export { chooseFormat, filterFormats, selectFormats, sortFormats } from "./core/format-select";

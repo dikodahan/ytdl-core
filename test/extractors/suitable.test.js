@@ -87,6 +87,8 @@ const CASES = [
   ["bloomberg", "https://www.bloomberg.com/news/videos/2020-01-01/example"],
   ["reuters", "https://www.reuters.com/video/example"],
   ["foxnews", "https://www.foxnews.com/video/6328632286112"],
+  ["youporn", "https://www.youporn.com/watch/16290308/tinderspecial-trailer1/"],
+  ["youjizz", "https://www.youjizz.com/videos/zeichentrick-1-2189178.html"],
   // Batch 6
   ["googledrive", "https://drive.google.com/file/d/0ByeS4oOUV-49Zzh4R1J6R09zazQ/view"],
   ["dropbox", "https://www.dropbox.com/s/nelirfsxnmcfbfh/video.mp4?dl=0"],

@@ -1,6 +1,7 @@
 import { PassThrough, type Readable } from "stream";
-import { listExtractors, resolveExtractor } from "./registry";
+import { listExtractors, resolveExtractor, resolveListExtractor, createVideoLister } from "./registry";
 import type { InfoDict, YoutubeDLParams } from "./types";
+import type { ListVideosOptions, VideoListResult } from "./video-list";
 import type { ExtractorInfo } from "./info-extractor";
 import { RequestClient, createAgent, createProxyAgent } from "../networking/request";
 import { selectFormats } from "./format-select";
@@ -77,6 +78,25 @@ export class YoutubeDL {
     return info;
   }
 
+  async listVideos(url: string, options: ListVideosOptions = {}): Promise<VideoListResult> {
+    const site = this.params.site || this.params.service;
+    let IE;
+    try {
+      IE = resolveListExtractor(url, site);
+    } catch (err) {
+      throw err;
+    }
+    if (!IE) {
+      throw new Error(
+        site
+          ? `Service "${site}" does not support listing video ids for this URL`
+          : `No list-capable extractor for URL: ${url}`,
+      );
+    }
+    const lister = createVideoLister(IE, this.params, this.request);
+    return lister.listVideos(url, options);
+  }
+
   download(url: string, options: DownloadOptions = {}): Readable {
     const stream = new PassThrough({ highWaterMark: options.highWaterMark || 1024 * 512 });
     this.extractInfo(url)
@@ -103,6 +123,19 @@ export async function extractInfo(url: string, params: YoutubeDLParams = {}): Pr
   const ydl = new YoutubeDL(params);
   try {
     return await ydl.extractInfo(url);
+  } finally {
+    await ydl.close();
+  }
+}
+
+export async function listVideos(
+  url: string,
+  params: YoutubeDLParams & ListVideosOptions = {},
+): Promise<VideoListResult> {
+  const { page, limit, ...rest } = params;
+  const ydl = new YoutubeDL(rest);
+  try {
+    return await ydl.listVideos(url, { page, limit });
   } finally {
     await ydl.close();
   }

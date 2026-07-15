@@ -52,6 +52,12 @@ curl -s ${origin}/api/v1/extract \\
   -H "Content-Type: application/json" \\
   -d '{"url":"https://www.dailymotion.com/video/x5kesuj","service":"dailymotion"}'
 
+# List video ids (youporn / youjizz listing pages)
+curl -s ${origin}/api/v1/list \\
+  -H "Authorization: Bearer ytdl_YOUR_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"url":"https://www.youporn.com/category/amateur/","service":"youporn","limit":20}'
+
 # Optional: X-API-Token header instead of Authorization
 curl -s ${origin}/api/v1/extract \\
   -H "X-API-Token: ytdl_YOUR_TOKEN" \\

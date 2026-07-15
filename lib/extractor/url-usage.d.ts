@@ -15,6 +15,8 @@ export interface UrlUsageGuide {
     notes?: string;
 }
 export declare const URL_USAGE: Record<string, UrlUsageGuide>;
+/** Listing-page guides for `POST /api/v1/list` (video id enumeration). */
+export declare const LIST_URL_USAGE: Record<string, UrlUsageGuide>;
 /** Attach urlUsage / examples / notes onto extractor meta. */
 export declare function withUrlUsage(info: ExtractorInfo): ExtractorInfo;
 //# sourceMappingURL=url-usage.d.ts.map

@@ -21,9 +21,7 @@ pnpm add cycletls
 ```js
 const ytdl = require("@distube/ytdl-core");
 
-ytdl("https://www.youtube.com/watch?v=aqz-KE-bpKQ").pipe(
-  require("fs").createWriteStream("video.mp4"),
-);
+ytdl("https://www.youtube.com/watch?v=aqz-KE-bpKQ").pipe(require("fs").createWriteStream("video.mp4"));
 
 const info = await ytdl.getInfo("aqz-KE-bpKQ");
 console.log(info.videoDetails.title, info.formats.length);
@@ -32,9 +30,7 @@ console.log(info.videoDetails.title, info.formats.length);
 ### Cookies / proxy
 
 ```js
-const agent = ytdl.createAgent([
-  { name: "LOGIN_INFO", value: "..." },
-]);
+const agent = ytdl.createAgent([{ name: "LOGIN_INFO", value: "..." }]);
 await ytdl.getInfo(url, { agent });
 ```
 
@@ -70,11 +66,11 @@ ydl.download(url).pipe(fs.createWriteStream("out.mp4"));
 
 Bot management often scores Undici/OpenSSL JA3 fingerprints. With optional **CycleTLS**:
 
-| Param | Effect |
-|-------|--------|
-| `impersonate: "chrome" \| …` | Browser-like headers (profile for CF retries) |
-| `cloudflareBypass: true` | If Undici hits a CF challenge page, retry that request via CycleTLS |
-| `forceImpersonate: true` | Send **all** traffic through CycleTLS (stronger; can break YouTube Innertube) |
+| Param                        | Effect                                                                        |
+| ---------------------------- | ----------------------------------------------------------------------------- |
+| `impersonate: "chrome" \| …` | Browser-like headers (profile for CF retries)                                 |
+| `cloudflareBypass: true`     | If Undici hits a CF challenge page, retry that request via CycleTLS           |
+| `forceImpersonate: true`     | Send **all** traffic through CycleTLS (stronger; can break YouTube Innertube) |
 
 Default extraction keeps Undici (best for YouTube). Enable `cloudflareBypass` for challenge retries. Without `cycletls`, only header spoofing applies. JS/Turnstile still needs cookies or a real browser.
 
@@ -99,7 +95,6 @@ curl -s http://127.0.0.1:8787/api/v1/extract \
   -H "Content-Type: application/json" \
   -d '{"url":"https://www.dailymotion.com/video/x5kesuj","service":"dailymotion"}'
 
-# Meta / site options (includes migration status)
 curl -s http://127.0.0.1:8787/api/v1/meta \
   -H "Authorization: Bearer ytdl_…"
 ```
@@ -115,14 +110,15 @@ Multi-site progress: [docs/site-migration.md](docs/site-migration.md).
 
 `GET /api/v1/meta` (and the extract UI site picker) include per-provider **`urlUsage`**, **`examples`**, and optional **`notes`** — what link to paste for each service.
 
-| Endpoint | Auth |
-|----------|------|
-| `GET /api/v1/health` | none |
-| `GET /api/v1/meta` | Bearer |
-| `POST /api/v1/extract` | Bearer |
-| `GET/POST /api/v1/tokens` | localhost **or** Bearer |
+| Endpoint                         | Auth                    |
+| -------------------------------- | ----------------------- |
+| `GET /api/v1/health`             | none                    |
+| `GET /api/v1/meta`               | Bearer                  |
+| `POST /api/v1/extract`           | Bearer                  |
+| `POST /api/v1/list`              | Bearer                  |
+| `GET/POST /api/v1/tokens`        | localhost **or** Bearer |
 | `POST /api/v1/tokens/:id/revoke` | localhost **or** Bearer |
-| `DELETE /api/v1/tokens/:id` | localhost **or** Bearer |
+| `DELETE /api/v1/tokens/:id`      | localhost **or** Bearer |
 
 Lab helpers `/api/meta` and `/api/extract` stay open for the local UI on loopback. Set `YTDL_API_REQUIRE_AUTH=1` to require Bearer everywhere.
 

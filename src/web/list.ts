@@ -1,0 +1,127 @@
+import type { YoutubeDLParams } from "../core/types";
+import type { ListVideosOptions } from "../core/video-list";
+import { YoutubeDL } from "../core/youtube-dl";
+import { findExtractorByName, resolveListExtractor } from "../core/registry";
+
+const KNOWN_KEYS = new Set([
+  "url",
+  "site",
+  "service",
+  "page",
+  "limit",
+  "proxy",
+  "impersonate",
+  "cloudflareBypass",
+  "forceImpersonate",
+  "quiet",
+  "headers",
+]);
+
+export type ListRequest = YoutubeDLParams &
+  ListVideosOptions & {
+    url?: string;
+    site?: string;
+    service?: string;
+  };
+
+export function parseListBody(raw: string): ListRequest {
+  const data = JSON.parse(raw || "{}") as Record<string, unknown>;
+
+  const site =
+    (typeof data.site === "string" && data.site) ||
+    (typeof data.service === "string" && data.service) ||
+    undefined;
+
+  const pageRaw = data.page;
+  const limitRaw = data.limit;
+  const page =
+    typeof pageRaw === "number" && Number.isFinite(pageRaw)
+      ? pageRaw
+      : typeof pageRaw === "string" && pageRaw.trim()
+        ? Number(pageRaw)
+        : undefined;
+  const limit =
+    typeof limitRaw === "number" && Number.isFinite(limitRaw)
+      ? limitRaw
+      : typeof limitRaw === "string" && limitRaw.trim()
+        ? Number(limitRaw)
+        : undefined;
+
+  const impersonateRaw = data.impersonate;
+  const impersonate =
+    impersonateRaw === false || impersonateRaw === "" || impersonateRaw == null
+      ? undefined
+      : (impersonateRaw as YoutubeDLParams["impersonate"]);
+
+  return {
+    url: typeof data.url === "string" ? data.url : undefined,
+    site,
+    service: site,
+    page: page && page > 0 ? Math.floor(page) : undefined,
+    limit: limit && limit > 0 ? Math.floor(limit) : undefined,
+    proxy: typeof data.proxy === "string" && data.proxy ? data.proxy : undefined,
+    impersonate,
+    cloudflareBypass: data.cloudflareBypass === true,
+    forceImpersonate: data.forceImpersonate === true,
+    quiet: true,
+    headers:
+      data.headers && typeof data.headers === "object"
+        ? (data.headers as Record<string, string>)
+        : undefined,
+  };
+}
+
+export async function runList(parsed: ListRequest) {
+  const target = parsed.url?.trim();
+  if (!target) {
+    return { status: 400 as const, body: { error: "url is required" } };
+  }
+
+  const site = parsed.site || parsed.service;
+  if (site && !findExtractorByName(site)) {
+    return { status: 400 as const, body: { error: `Unknown site: ${site}` } };
+  }
+
+  try {
+    if (site) resolveListExtractor(target, site);
+    else if (!resolveListExtractor(target)) {
+      return {
+        status: 400 as const,
+        body: {
+          error: "No list-capable extractor for this URL",
+          hint: "Use a browse/category listing URL and/or force service to youporn or youjizz.",
+        },
+      };
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { status: 400 as const, body: { error: message } };
+  }
+
+  const started = Date.now();
+  const ydl = new YoutubeDL({ ...parsed, site, service: site });
+  try {
+    const result = await ydl.listVideos(target, { page: parsed.page, limit: parsed.limit });
+    return {
+      status: 200 as const,
+      body: {
+        ok: true,
+        elapsedMs: Date.now() - started,
+        extractor: result.extractor,
+        webpage_url: result.webpage_url,
+        playlist_id: result.playlist_id,
+        playlist_title: result.playlist_title,
+        page: result.page,
+        count: result.entries.length,
+        next_page_url: result.next_page_url ?? null,
+        entries: result.entries,
+      },
+    };
+  } finally {
+    await ydl.close();
+  }
+}
+
+export function listMetaForDocs(): { method: string; path: string; auth: boolean } {
+  return { method: "POST", path: "/api/v1/list", auth: true };
+}

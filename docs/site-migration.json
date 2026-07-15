@@ -8,8 +8,8 @@
       "YoutubeIE"
     ]
   },
-  "handPortedCount": 72,
-  "generatedCount": 850,
+  "handPortedCount": 74,
+  "generatedCount": 848,
   "batches": [
     {
       "id": 0,
@@ -553,6 +553,27 @@
           "status": "ready",
           "ies": [
             "streamjaIE"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Hand-ported streaming",
+      "status": "complete",
+      "modules": [
+        {
+          "id": "youporn",
+          "status": "ready",
+          "ies": [
+            "youpornIE"
+          ]
+        },
+        {
+          "id": "youjizz",
+          "status": "ready",
+          "ies": [
+            "youjizzIE"
           ]
         }
       ]
@@ -7863,7 +7884,7 @@
     },
     {
       "id": 90,
-      "title": "Generated webpage scrape (yandexvideo\u2013zan)",
+      "title": "Generated webpage scrape (yandexvideo\u2013zattoo)",
       "status": "complete",
       "source": "generated",
       "modules": [
@@ -7908,26 +7929,10 @@
           "source": "generated"
         },
         {
-          "id": "youjizz",
-          "status": "partial",
-          "ies": [
-            "YouJizzIE"
-          ],
-          "source": "generated"
-        },
-        {
           "id": "younow",
           "status": "partial",
           "ies": [
             "YouNowLiveIE"
-          ],
-          "source": "generated"
-        },
-        {
-          "id": "youporn",
-          "status": "partial",
-          "ies": [
-            "YouPornIE"
           ],
           "source": "generated"
         },
@@ -7946,15 +7951,7 @@
             "ZanIE"
           ],
           "source": "generated"
-        }
-      ]
-    },
-    {
-      "id": 91,
-      "title": "Generated webpage scrape (zapiks\u2013zype)",
-      "status": "complete",
-      "source": "generated",
-      "modules": [
+        },
         {
           "id": "zapiks",
           "status": "partial",
@@ -7970,7 +7967,15 @@
             "ZattooIE"
           ],
           "source": "generated"
-        },
+        }
+      ]
+    },
+    {
+      "id": 91,
+      "title": "Generated webpage scrape (zdf\u2013zype)",
+      "status": "complete",
+      "source": "generated",
+      "modules": [
         {
           "id": "zdf",
           "status": "partial",

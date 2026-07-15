@@ -190,6 +190,7 @@ export function metaPayload() {
         { method: "GET", path: "/api/v1/health", auth: false },
         { method: "GET", path: "/api/v1/meta", auth: true },
         { method: "POST", path: "/api/v1/extract", auth: true },
+        { method: "POST", path: "/api/v1/list", auth: true },
         { method: "GET", path: "/api/v1/tokens", auth: "loopback or bearer" },
         { method: "POST", path: "/api/v1/tokens", auth: "loopback or bearer" },
         { method: "POST", path: "/api/v1/tokens/:id/revoke", auth: "loopback or bearer" },

@@ -412,6 +412,22 @@ export const URL_USAGE: Record<string, UrlUsageGuide> = {
       "https://video.foxnews.com/v/6320653836112",
     ],
   },
+  youporn: {
+    usage: "Paste a YouPorn watch or embed URL (`youporn.com/watch/{id}` or `/embed/{id}`).",
+    examples: [
+      "https://www.youporn.com/watch/16290308/tinderspecial-trailer1/",
+      "https://www.youporn.com/embed/16290308/",
+    ],
+    notes: "Adult content (18+). Use `POST /api/v1/list` for category/channel id lists.",
+  },
+  youjizz: {
+    usage: "Paste a YouJizz video or embed URL (`youjizz.com/videos/…-{id}.html` or `/videos/embed/{id}`).",
+    examples: [
+      "https://www.youjizz.com/videos/zeichentrick-1-2189178.html",
+      "https://www.youjizz.com/videos/embed/31991001",
+    ],
+    notes: "Adult content (18+).",
+  },
 
   // Batch 6 — hosts / short clips
   googledrive: {
@@ -464,6 +480,27 @@ export const URL_USAGE: Record<string, UrlUsageGuide> = {
   },
 };
 
+/** Listing-page guides for `POST /api/v1/list` (video id enumeration). */
+export const LIST_URL_USAGE: Record<string, UrlUsageGuide> = {
+  youporn: {
+    usage:
+      "Paste a YouPorn browse URL: homepage, category, channel, tag (`porntags/…`), pornstar, or collection listing.",
+    examples: [
+      "https://www.youporn.com/category/amateur/",
+      "https://www.youporn.com/pornstar/daynia/",
+    ],
+    notes: "Returns numeric video ids and `https://www.youporn.com/watch/{id}/` links. Optional `page` query param.",
+  },
+  youjizz: {
+    usage: "Paste a YouJizz category or newest-clips listing page (`/categories/{slug}-{page}.html`).",
+    examples: [
+      "https://www.youjizz.com/categories/teen-1.html",
+      "https://www.youjizz.com/newest-clips/1.html",
+    ],
+    notes: "Returns ids parsed from listing tiles. Use `page` in the request body to fetch another page.",
+  },
+};
+
 function fallbackUsage(info: ExtractorInfo): UrlUsageGuide {
   return {
     usage: `Paste a URL accepted by the ${info.name} extractor${
@@ -477,10 +514,19 @@ function fallbackUsage(info: ExtractorInfo): UrlUsageGuide {
 /** Attach urlUsage / examples / notes onto extractor meta. */
 export function withUrlUsage(info: ExtractorInfo): ExtractorInfo {
   const guide = URL_USAGE[info.name] || fallbackUsage(info);
+  const listGuide = LIST_URL_USAGE[info.name];
   return {
     ...info,
     urlUsage: guide.usage,
     examples: guide.examples,
     notes: guide.notes,
+    ...(listGuide || info.listSupported
+      ? {
+          listSupported: true,
+          listUrlUsage: listGuide?.usage,
+          listExamples: listGuide?.examples,
+          listNotes: listGuide?.notes,
+        }
+      : {}),
   };
 }

@@ -9,6 +9,7 @@ import {
   parseExtractBody,
   runExtract,
 } from "./extract";
+import { parseListBody, runList } from "./list";
 
 const MIME: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -189,6 +190,18 @@ export function createWebServer(options: WebServerOptions = {}): http.Server {
         return;
       }
 
+      if (pathname === "/api/v1/list" && req.method === "POST") {
+        if (!authToken) {
+          unauthorized(res);
+          return;
+        }
+        const raw = await readBody(req);
+        const parsed = parseListBody(raw);
+        const result = await runList(parsed);
+        sendJson(res, result.status, result.body);
+        return;
+      }
+
       // --- lab UI helpers (loopback by default) ---
       if (pathname === "/api/meta" && req.method === "GET") {
         if (!allowLab && !authToken) {
@@ -207,6 +220,18 @@ export function createWebServer(options: WebServerOptions = {}): http.Server {
         const raw = await readBody(req);
         const parsed = parseExtractBody(raw);
         const result = await runExtract(parsed);
+        sendJson(res, result.status, result.body);
+        return;
+      }
+
+      if (pathname === "/api/list" && req.method === "POST") {
+        if (!allowLab && !authToken) {
+          unauthorized(res);
+          return;
+        }
+        const raw = await readBody(req);
+        const parsed = parseListBody(raw);
+        const result = await runList(parsed);
         sendJson(res, result.status, result.body);
         return;
       }

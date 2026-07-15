@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "count": 850,
+  "count": 848,
   "extractors": [
     {
       "id": "abcnews",
@@ -12772,20 +12772,6 @@
       "source": "generated"
     },
     {
-      "id": "youjizz",
-      "ieClass": "YouJizzIE",
-      "ieName": "youjizz",
-      "description": "youjizz (auto-generated webpage extract)",
-      "patterns": [
-        "https?://(?:\\w+\\.)?youjizz\\.com/videos/(?:[^/#?]*-(?<id>\\d+)\\.html|embed/(?<embed_id>\\d+))"
-      ],
-      "hosts": [
-        "www.youjizz.com"
-      ],
-      "module": "youjizz",
-      "source": "generated"
-    },
-    {
       "id": "younow",
       "ieClass": "YouNowLiveIE",
       "ieName": "younow",
@@ -12798,25 +12784,6 @@
         "www.younow.com"
       ],
       "module": "younow",
-      "source": "generated"
-    },
-    {
-      "id": "youporn",
-      "ieClass": "YouPornIE",
-      "ieName": "youporn",
-      "description": "YouPorn category, with sorting, filtering and pagination (auto-generated webpage extract)",
-      "patterns": [
-        "https?://(?:www\\.)?youporn\\.com/(?:watch|embed)/(?<id>\\d+)(?:/(?<display_id>[^/?#&]+))?/?(?:[#?]|$)",
-        "\n        https?://(?:www\\.)?youporn\\.com/\n        (?<type>category)/(?<id>[^/?#&]+)\n        (?:/(?<sort>popular|views|rating|time|duration))?/?(?:[#?]|$)",
-        "\n        https?://(?:www\\.)?youporn\\.com/\n        (?<type>collection)s/videos/(?<id>\\d+)\n        (?:/(?<sort>rating|views|time|duration))?/?(?:[#?]|$)",
-        "\n        https?://(?:www\\.)?youporn\\.com/\n        porn(?<type>tag)s/(?<id>[^/?#&]+)\n        (?:/(?<sort>views|rating|time|duration))?/?(?:[#?]|$)",
-        "\n        https?://(?:www\\.)?youporn\\.com/\n        (?<type>pornstar)/(?<id>[^/?#&]+)\n        (?:/(?<sort>rating|views|duration))?/?(?:[#?]|$)",
-        "\n        https?://(?:www\\.)?youporn\\.com/\n            (?:(?<id>browse)/)?\n            (?<sort>(?(id)\n                (?:duration|rating|time|views)|\n                (?:most_(?:favou?rit|view)ed|recommended|top_rated)?))\n            (?:[/#?]|$)"
-      ],
-      "hosts": [
-        "www.youporn.com"
-      ],
-      "module": "youporn",
       "source": "generated"
     },
     {

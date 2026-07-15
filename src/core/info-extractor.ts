@@ -1,5 +1,8 @@
 import type { InfoDict, YoutubeDLParams } from "./types";
 import type { RequestClient } from "../networking/request";
+import type { ListVideosOptions, VideoListResult } from "./video-list";
+
+export type { VideoListEntry, VideoListResult, ListVideosOptions } from "./video-list";
 
 export type ExtractorOptionType = "string" | "boolean" | "select" | "multiselect" | "textarea" | "number";
 
@@ -28,6 +31,12 @@ export interface ExtractorInfo {
   examples?: string[];
   /** Caveats (cookies, geo, pseudo-URLs, etc.) */
   notes?: string;
+  /** When true, `POST /api/v1/list` can scrape video ids from listing pages. */
+  listSupported?: boolean;
+  /** What listing / browse URL to paste for id enumeration. */
+  listUrlUsage?: string;
+  listExamples?: string[];
+  listNotes?: string;
 }
 
 export abstract class InfoExtractor {
@@ -59,6 +68,16 @@ export abstract class InfoExtractor {
 
   abstract extract(url: string): Promise<InfoDict>;
 }
+
+/** Extractor that implements optional `listVideos()` on the instance. */
+export interface VideoLister {
+  listVideos(url: string, options?: ListVideosOptions): Promise<VideoListResult>;
+}
+
+export type ListCapableExtractorConstructor = InfoExtractorConstructor & {
+  listUrlSupported(url: string): boolean;
+  new (params: YoutubeDLParams, request: RequestClient): InfoExtractor & VideoLister;
+};
 
 export type InfoExtractorConstructor = {
   new (params: YoutubeDLParams, request: RequestClient): InfoExtractor;

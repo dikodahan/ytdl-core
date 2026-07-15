@@ -63,7 +63,7 @@
     "typecheck": "tsc --noEmit",
     "generate:extractors": "python3 scripts/generate-remaining-extractors.py",
     "test:extract": "node scripts/smoke-extract.js",
-    "test": "node --test test/extractors/suitable.test.js",
+    "test": "node --test test/extractors/suitable.test.js test/extractors/list.test.js",
     "test:live": "YTDL_LIVE_TEST=1 node --test test/extractors/smoke-live.test.js",
     "web": "node scripts/ytdl-web.js",
     "prettier": "prettier --write \"**/*.{js,json,yml,md,ts,css,html}\"",
