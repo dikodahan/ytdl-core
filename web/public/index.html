@@ -89,6 +89,42 @@
         </section>
       </main>
     </div>
+
+    <dialog id="kaltura-ott-discover" class="modal">
+      <form method="dialog" id="kaltura-ott-discover-form" class="modal-card">
+        <header class="modal-head">
+          <h2>Discover Kaltura OTT partner ID</h2>
+          <button type="button" class="ghost modal-close" id="kaltura-ott-discover-close" aria-label="Close">
+            ×
+          </button>
+        </header>
+        <p class="modal-lede">
+          Enter the provider website (e.g. <code>https://tv.reshet.com</code>). The lab fetches the page,
+          scans HTML/JS for Kaltura OTT hints, and probes <code>anonymousLogin</code> to verify partner IDs.
+        </p>
+        <label class="field">
+          <span>Provider website</span>
+          <input
+            id="kaltura-ott-discover-url"
+            type="url"
+            placeholder="https://tv.example.com"
+            autocomplete="off"
+            required
+          />
+        </label>
+        <label class="option-bool">
+          <input id="kaltura-ott-discover-deep" type="checkbox" />
+          <span>Deep scan (slower — probes partner IDs 2500–5500 if scrape finds nothing)</span>
+        </label>
+        <p id="kaltura-ott-discover-status" class="hint" aria-live="polite"></p>
+        <div id="kaltura-ott-discover-results" class="discover-results"></div>
+        <footer class="modal-actions">
+          <button type="button" id="kaltura-ott-discover-run">Scan website</button>
+          <button type="button" class="ghost" id="kaltura-ott-discover-cancel">Close</button>
+        </footer>
+      </form>
+    </dialog>
+
     <script src="/app.js"></script>
   </body>
 </html>

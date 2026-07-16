@@ -151,6 +151,19 @@ function renderSiteHelp(siteName) {
     }
     host.append(list);
   }
+
+  if (siteName === "kaltura-ott") {
+    host.append(
+      el("div", { className: "actions" }, [
+        el("button", {
+          type: "button",
+          className: "ghost",
+          text: "Discover partner ID…",
+          onclick: () => openKalturaOttDiscoverModal(),
+        }),
+      ]),
+    );
+  }
 }
 
 function renderSiteOptions(siteName) {
@@ -321,6 +334,117 @@ function renderResults(data) {
   }
 }
 
+function openKalturaOttDiscoverModal() {
+  const dialog = $("kaltura-ott-discover");
+  const urlInput = $("kaltura-ott-discover-url");
+  const mainUrl = $("url")?.value?.trim() || "";
+  if (urlInput && /^https?:\/\//i.test(mainUrl) && !mainUrl.startsWith("kaltura-ott:")) {
+    urlInput.value = mainUrl;
+  }
+  $("kaltura-ott-discover-status").textContent = "";
+  $("kaltura-ott-discover-results").innerHTML = "";
+  if (typeof dialog.showModal === "function") dialog.showModal();
+}
+
+function renderDiscoverResults(data) {
+  const host = $("kaltura-ott-discover-results");
+  host.innerHTML = "";
+  if (!data?.hits?.length) {
+    host.append(el("p", { className: "discover-meta", text: "No partner IDs found." }));
+    return;
+  }
+
+  for (const hit of data.hits) {
+    const card = el("div", { className: "discover-hit" });
+    card.append(
+      el("div", { className: "discover-hit-head" }, [
+        el("strong", { text: `Partner ${hit.partnerId}` }),
+        el("span", { className: `discover-badge ${hit.confidence}`, text: hit.confidence }),
+      ]),
+    );
+    const meta = [
+      hit.source ? `Source: ${hit.source}` : null,
+      hit.apiHost ? `API: ${hit.apiHost}` : null,
+      hit.lineupId ? `Lineup: ${hit.lineupId}` : null,
+      hit.channelCount != null ? `Channels: ${hit.channelCount}` : null,
+      hit.applicationName ? `App: ${hit.applicationName}` : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    card.append(el("p", { className: "discover-meta", text: meta || hit.sampleUrl }));
+    card.append(
+      el("div", { className: "actions" }, [
+        el("button", {
+          type: "button",
+          text: "Use listing URL",
+          onclick: () => {
+            $("site").value = "kaltura-ott";
+            renderSiteOptions("kaltura-ott");
+            $("url").value = hit.sampleUrl;
+            $("url").focus();
+            $("kaltura-ott-discover").close();
+            setStatus(`Using partner ${hit.partnerId} — ${hit.sampleUrl}`, "ok");
+          },
+        }),
+      ]),
+    );
+    host.append(card);
+  }
+
+  if (data.notes?.length) {
+    host.append(
+      el("ul", { className: "discover-notes" }, data.notes.map(note => el("li", { text: note }))),
+    );
+  }
+}
+
+function wireKalturaOttDiscoverModal() {
+  const dialog = $("kaltura-ott-discover");
+  if (!dialog) return;
+
+  const close = () => dialog.close();
+  $("kaltura-ott-discover-close")?.addEventListener("click", close);
+  $("kaltura-ott-discover-cancel")?.addEventListener("click", close);
+
+  $("kaltura-ott-discover-run")?.addEventListener("click", async () => {
+    const url = $("kaltura-ott-discover-url")?.value?.trim();
+    if (!url) return;
+
+    const status = $("kaltura-ott-discover-status");
+    const runBtn = $("kaltura-ott-discover-run");
+    status.textContent = "Scanning website and probing Kaltura OTT login…";
+    status.className = "hint";
+    runBtn.disabled = true;
+    $("kaltura-ott-discover-results").innerHTML = "";
+
+    try {
+      const res = await fetch("/api/discover/kaltura-ott", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url,
+          deepScan: $("kaltura-ott-discover-deep")?.checked === true,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        status.textContent = data.error || `HTTP ${res.status}`;
+        status.className = "hint warn";
+        return;
+      }
+      renderDiscoverResults(data);
+      const verified = data.hits?.filter(h => h.confidence === "verified").length || 0;
+      status.textContent = `Done in ${data.elapsedMs}ms · ${data.probesAttempted} probes · ${verified} verified`;
+      status.className = verified ? "hint ok" : "hint warn";
+    } catch (err) {
+      status.textContent = err.message || String(err);
+      status.className = "hint warn";
+    } finally {
+      runBtn.disabled = false;
+    }
+  });
+}
+
 async function boot() {
   const res = await fetch("/api/meta");
   meta = await res.json();
@@ -344,6 +468,7 @@ async function boot() {
   siteSelect.addEventListener("change", () => renderSiteOptions(siteSelect.value));
   if (sites[0]) renderSiteOptions(sites[0].name);
   renderGlobalOptions();
+  wireKalturaOttDiscoverModal();
 
   $("extract-form").addEventListener("submit", async e => {
     e.preventDefault();

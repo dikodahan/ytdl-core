@@ -6,6 +6,7 @@ import { BrightcoveIE } from "./brightcove";
 import { JWPlatformIE } from "./jwplatform";
 import { WistiaIE } from "./wistia";
 import { KalturaIE } from "./kaltura";
+import { KalturaOttIE } from "./kaltura-ott";
 import { AnvatoIE } from "./anvato";
 import { ThePlatformIE } from "./theplatform";
 import { CloudflareStreamIE } from "./cloudflarestream";
@@ -104,6 +105,7 @@ export function registerBuiltInExtractors(): void {
   registerExtractor(JWPlatformIE);
   registerExtractor(WistiaIE);
   registerExtractor(KalturaIE);
+  registerExtractor(KalturaOttIE);
   registerExtractor(AnvatoIE);
   registerExtractor(ThePlatformIE);
   registerExtractor(CloudflareStreamIE);
@@ -198,6 +200,7 @@ export {
   JWPlatformIE,
   WistiaIE,
   KalturaIE,
+  KalturaOttIE,
   AnvatoIE,
   ThePlatformIE,
   CloudflareStreamIE,

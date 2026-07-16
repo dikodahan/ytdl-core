@@ -10,6 +10,7 @@ import {
   runExtract,
 } from "./extract";
 import { parseListBody, runList } from "./list";
+import { parseDiscoverKalturaOttBody, runDiscoverKalturaOtt } from "./discover";
 
 const MIME: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -202,6 +203,23 @@ export function createWebServer(options: WebServerOptions = {}): http.Server {
         return;
       }
 
+      if (pathname === "/api/v1/discover/kaltura-ott" && req.method === "POST") {
+        if (!authToken) {
+          unauthorized(res);
+          return;
+        }
+        const raw = await readBody(req);
+        try {
+          const parsed = parseDiscoverKalturaOttBody(raw);
+          const result = await runDiscoverKalturaOtt(parsed);
+          sendJson(res, result.status, result.body);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          sendJson(res, 400, { ok: false, error: message });
+        }
+        return;
+      }
+
       // --- lab UI helpers (loopback by default) ---
       if (pathname === "/api/meta" && req.method === "GET") {
         if (!allowLab && !authToken) {
@@ -233,6 +251,23 @@ export function createWebServer(options: WebServerOptions = {}): http.Server {
         const parsed = parseListBody(raw);
         const result = await runList(parsed);
         sendJson(res, result.status, result.body);
+        return;
+      }
+
+      if (pathname === "/api/discover/kaltura-ott" && req.method === "POST") {
+        if (!allowLab && !authToken) {
+          unauthorized(res);
+          return;
+        }
+        const raw = await readBody(req);
+        try {
+          const parsed = parseDiscoverKalturaOttBody(raw);
+          const result = await runDiscoverKalturaOtt(parsed);
+          sendJson(res, result.status, result.body);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          sendJson(res, 400, { ok: false, error: message });
+        }
         return;
       }
 

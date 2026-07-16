@@ -19,6 +19,7 @@ const CASES = [
   ["wistia", "https://fast.wistia.net/embed/iframe/j38ihh83m5"],
   ["brightcove", "https://players.brightcove.net/123/default_default/index.html?videoId=456"],
   ["kaltura", "kaltura:123:0_abc"],
+  ["kaltura-ott", "kaltura-ott:reshet:live:2605018"],
   ["anvato", "anvato:lin:8032455"],
   ["theplatform", "https://link.theplatform.com/s/provider/media/id123"],
   ["bunnycdn", "https://iframe.mediadelivery.net/embed/123/abcdef01-2345-6789-abcd-ef0123456789"],

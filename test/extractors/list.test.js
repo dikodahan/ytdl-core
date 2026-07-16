@@ -22,7 +22,7 @@ const LIST_CASES = [
 describe("video list API", () => {
   it("registers list-capable extractors", () => {
     const names = listListCapableExtractors().map(ie => ie.IE_NAME).sort();
-    assert.deepEqual(names, ["famelack", "xnxx", "youjizz", "youporn"]);
+    assert.deepEqual(names, ["famelack", "kaltura-ott", "xnxx", "youjizz", "youporn"]);
   });
 
   for (const [name, url] of LIST_CASES) {
