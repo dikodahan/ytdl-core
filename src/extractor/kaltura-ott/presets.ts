@@ -52,6 +52,12 @@ export const KALTURA_OTT_PRESETS: Record<string, KalturaOttPartnerPreset> = {
     lineups: [{ id: 353891, title: "Cellcom TV channels" }],
     epgStyle: "search",
     channelFilterKsql: CELLCOM_CHANNEL_KSQL,
+    deviceConfig: {
+      applicationName: "com.cellcom.cellcomtv",
+      clientVersion: "1.0.0",
+      platform: "Android",
+      tag: "CellcomTV",
+    },
     defaultEpgDays: 3,
   },
   reshet: {

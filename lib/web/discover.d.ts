@@ -1,6 +1,7 @@
 import type { YoutubeDLParams } from "../core/types";
 export interface DiscoverKalturaOttRequest {
-    url: string;
+    /** Android applicationId / package FQDN (e.g. com.cellcom.cellcomtv). */
+    applicationName: string;
     deepScan?: boolean;
     deepScanLimit?: number;
     proxy?: string;
@@ -13,11 +14,10 @@ export declare function runDiscoverKalturaOtt(parsed: DiscoverKalturaOttRequest)
     body: {
         elapsedMs: number;
         ok: boolean;
+        applicationName: string;
         inputUrl: string;
-        domain: string;
         hits: import("../extractor/kaltura-ott/discover").PartnerDiscoveryHit[];
         candidates: number[];
-        scannedScripts: number;
         probesAttempted: number;
         notes: string[];
         error?: undefined;

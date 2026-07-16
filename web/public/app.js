@@ -337,13 +337,10 @@ function renderResults(data) {
 function openKalturaOttDiscoverModal() {
   const dialog = $("kaltura-ott-discover");
   const urlInput = $("kaltura-ott-discover-url");
-  const mainUrl = $("url")?.value?.trim() || "";
-  if (urlInput && /^https?:\/\//i.test(mainUrl) && !mainUrl.startsWith("kaltura-ott:")) {
-    urlInput.value = mainUrl;
-  }
   $("kaltura-ott-discover-status").textContent = "";
   $("kaltura-ott-discover-results").innerHTML = "";
   if (typeof dialog.showModal === "function") dialog.showModal();
+  urlInput?.focus();
 }
 
 function renderDiscoverResults(data) {
@@ -363,11 +360,11 @@ function renderDiscoverResults(data) {
       ]),
     );
     const meta = [
+      hit.applicationName ? `App: ${hit.applicationName}` : null,
       hit.source ? `Source: ${hit.source}` : null,
       hit.apiHost ? `API: ${hit.apiHost}` : null,
       hit.lineupId ? `Lineup: ${hit.lineupId}` : null,
       hit.channelCount != null ? `Channels: ${hit.channelCount}` : null,
-      hit.applicationName ? `App: ${hit.applicationName}` : null,
     ]
       .filter(Boolean)
       .join(" · ");
@@ -407,12 +404,12 @@ function wireKalturaOttDiscoverModal() {
   $("kaltura-ott-discover-cancel")?.addEventListener("click", close);
 
   $("kaltura-ott-discover-run")?.addEventListener("click", async () => {
-    const url = $("kaltura-ott-discover-url")?.value?.trim();
-    if (!url) return;
+    const applicationName = $("kaltura-ott-discover-url")?.value?.trim();
+    if (!applicationName) return;
 
     const status = $("kaltura-ott-discover-status");
     const runBtn = $("kaltura-ott-discover-run");
-    status.textContent = "Scanning website and probing Kaltura OTT login…";
+    status.textContent = "Probing Kaltura OTT anonymousLogin for this Android app…";
     status.className = "hint";
     runBtn.disabled = true;
     $("kaltura-ott-discover-results").innerHTML = "";
@@ -422,7 +419,7 @@ function wireKalturaOttDiscoverModal() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          url,
+          applicationName,
           deepScan: $("kaltura-ott-discover-deep")?.checked === true,
         }),
       });

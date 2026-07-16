@@ -17,25 +17,23 @@ export interface PartnerDiscoveryHit {
 }
 
 export interface DiscoverKalturaOttOptions {
-  /** Probe partner IDs sequentially when scrape finds nothing (default false). */
+  /**
+   * Probe partner IDs sequentially when app hints find nothing (default true
+   * for unknown Android package names).
+   */
   deepScan?: boolean;
   /** Max login probes during deep scan (default 120). */
   deepScanLimit?: number;
-  /** Max linked script files to fetch (default 6). */
-  maxScripts?: number;
-  /** Max scraped candidates to login-probe (default 20). */
-  maxCandidates?: number;
-  /** Page/script fetch timeout in ms (default 15000). */
-  fetchTimeoutMs?: number;
 }
 
 export interface DiscoverKalturaOttResult {
   ok: boolean;
+  /** Android applicationId / package FQDN that was queried. */
+  applicationName: string;
+  /** @deprecated Alias of applicationName for older clients. */
   inputUrl: string;
-  domain: string;
   hits: PartnerDiscoveryHit[];
   candidates: number[];
-  scannedScripts: number;
   probesAttempted: number;
   elapsedMs: number;
   notes: string[];
@@ -49,102 +47,141 @@ interface CandidateMeta {
   weight: number;
 }
 
-const PARTNER_ID_RE =
-  /\b(?:partnerId|partner_id|pId|pid)["'\s:=]+(\d{3,7})\b/gi;
-const HOST_PREFIX_RE = /\b(\d{3,7})\.frp1\.ott\.kaltura\.com/gi;
-const IMAGE_PARTNER_RE = /GetImage\/p\/(\d{3,7})\//gi;
-const LINEUP_RE = /\bidEqual["'\s:=]+(\d{4,8})\b/gi;
-const APP_NAME_RE = /\b(com\.kaltura\.[a-z0-9._-]+)/gi;
-const OTT_HOST_RE = /https?:\/\/[^"'`\s]*frp1\.ott\.kaltura\.com[^"'`\s]*/gi;
-
-const DOMAIN_HINTS: Array<{ pattern: RegExp; partnerId: number; label: string }> = [
-  { pattern: /reshet/i, partnerId: 5031, label: "domain hint (reshet)" },
-  { pattern: /cellcom/i, partnerId: 3197, label: "domain hint (cellcom)" },
-  { pattern: /13tv|channel13|ch13/i, partnerId: 5031, label: "domain hint (channel 13 / reshet)" },
+/** Known Android package → partner mappings (from Cellcom / Reshet reference apps). */
+const APP_FQDN_HINTS: Array<{
+  applicationName: string;
+  partnerId: number;
+  label: string;
+  lineupId?: number;
+}> = [
+  {
+    applicationName: "com.cellcom.cellcomtv",
+    partnerId: 3197,
+    label: "known app (com.cellcom.cellcomtv)",
+    lineupId: 353891,
+  },
+  {
+    applicationName: "com.kaltura.reshet.atv",
+    partnerId: 5031,
+    label: "known app (com.kaltura.reshet.atv)",
+    lineupId: 360478,
+  },
 ];
+
+const PACKAGE_KEYWORD_HINTS: Array<{ pattern: RegExp; partnerId: number; label: string }> = [
+  { pattern: /cellcom/i, partnerId: 3197, label: "package keyword (cellcom)" },
+  { pattern: /reshet/i, partnerId: 5031, label: "package keyword (reshet)" },
+  { pattern: /13tv|channel13|ch13/i, partnerId: 5031, label: "package keyword (channel 13)" },
+];
+
+const ANDROID_PACKAGE_RE = /^[a-zA-Z][a-zA-Z0-9_]*(?:\.[a-zA-Z][a-zA-Z0-9_]*)+$/;
+
+export function normalizeAndroidApplicationName(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) throw new Error("Android app FQDN is required");
+  if (/^https?:\/\//i.test(trimmed)) {
+    throw new Error(
+      `Invalid Android app FQDN "${raw}". Enter a package name like com.cellcom.cellcomtv, not a website URL.`,
+    );
+  }
+  // Allow accidental "package:com.foo.bar" paste from adb / Play Console.
+  const withoutScheme = trimmed.replace(/^package:/i, "").trim();
+  if (!ANDROID_PACKAGE_RE.test(withoutScheme)) {
+    throw new Error(
+      `Invalid Android app FQDN "${raw}". Expected a package name like com.cellcom.cellcomtv`,
+    );
+  }
+  return withoutScheme;
+}
 
 export async function discoverKalturaOttPartner(
   request: RequestClient,
-  inputUrl: string,
+  applicationNameOrUrl: string,
   options: DiscoverKalturaOttOptions = {},
 ): Promise<DiscoverKalturaOttResult> {
   const started = Date.now();
   const notes: string[] = [];
-  const maxScripts = options.maxScripts ?? 6;
   const deepScanLimit = options.deepScanLimit ?? 120;
-  const maxCandidates = options.maxCandidates ?? 20;
-  const fetchTimeoutMs = options.fetchTimeoutMs ?? 15_000;
 
-  let pageUrl: URL;
+  let applicationName: string;
   try {
-    pageUrl = normalizePageUrl(inputUrl);
-  } catch {
-    return emptyResult(inputUrl, "", started, ["Invalid URL — enter a full https:// provider homepage."]);
+    applicationName = normalizeAndroidApplicationName(applicationNameOrUrl);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return emptyResult(applicationNameOrUrl.trim(), started, [message]);
   }
 
-  const domain = pageUrl.hostname;
   const candidateMap = new Map<number, CandidateMeta>();
 
-  for (const hint of DOMAIN_HINTS) {
-    if (hint.pattern.test(domain) || hint.pattern.test(inputUrl)) {
-      addCandidate(candidateMap, hint.partnerId, hint.label, 4);
+  for (const hint of APP_FQDN_HINTS) {
+    if (hint.applicationName.toLowerCase() === applicationName.toLowerCase()) {
+      addCandidate(candidateMap, hint.partnerId, hint.label, 10, {
+        applicationName,
+        lineupId: hint.lineupId,
+      });
     }
   }
 
-  let html = "";
-  try {
-    html = await fetchText(request, pageUrl.toString(), pageUrl.origin, fetchTimeoutMs);
-    extractCandidatesFromText(html, "page HTML", candidateMap);
-  } catch (err) {
-    notes.push(`Could not fetch page: ${err instanceof Error ? err.message : String(err)}`);
-  }
-
-  const scriptUrls = extractScriptUrls(html, pageUrl).slice(0, maxScripts);
-  let scannedScripts = 0;
-  for (const scriptUrl of scriptUrls) {
-    try {
-      const js = await fetchText(request, scriptUrl, pageUrl.origin, fetchTimeoutMs);
-      extractCandidatesFromText(js, `script ${shortUrl(scriptUrl)}`, candidateMap);
-      scannedScripts++;
-    } catch {
-      /* ignore individual script failures */
+  for (const preset of Object.values(KALTURA_OTT_PRESETS)) {
+    const presetApp = preset.deviceConfig?.applicationName;
+    if (presetApp && presetApp.toLowerCase() === applicationName.toLowerCase()) {
+      addCandidate(candidateMap, preset.partnerId, `preset deviceConfig (${preset.alias})`, 10, {
+        applicationName,
+        lineupId: preset.defaultLineupId || undefined,
+      });
     }
   }
 
-  const candidates = [...candidateMap.values()]
-    .sort((a, b) => b.weight - a.weight)
-    .slice(0, maxCandidates);
-  if (candidateMap.size > maxCandidates) {
-    notes.push(`Probing top ${maxCandidates} of ${candidateMap.size} scraped candidates.`);
+  for (const hint of PACKAGE_KEYWORD_HINTS) {
+    if (hint.pattern.test(applicationName)) {
+      addCandidate(candidateMap, hint.partnerId, hint.label, 4, { applicationName });
+    }
   }
+
+  const knownHit = candidateMap.size > 0;
+  const deepScan = options.deepScan === true || (!knownHit && options.deepScan !== false);
+  if (!knownHit) {
+    notes.push(
+      `No built-in mapping for ${applicationName}; probing anonymousLogin to identify partner ID.`,
+    );
+  }
+
+  const candidates = [...candidateMap.values()].sort((a, b) => b.weight - a.weight);
   const hits: PartnerDiscoveryHit[] = [];
   let probesAttempted = 0;
 
   for (const c of candidates) {
     probesAttempted++;
-    const hit = await probePartner(request, c);
+    const hit = await probePartner(request, { ...c, applicationName }, applicationName);
     if (hit) hits.push(hit);
   }
 
-  if (!hits.some(h => h.confidence === "verified") && options.deepScan) {
-    notes.push(`Deep scan: probing up to ${deepScanLimit} partner IDs…`);
+  const hasVerified = () => hits.some(h => h.confidence === "verified");
+
+  if (!hasVerified() && deepScan) {
+    notes.push(`Deep scan: probing up to ${deepScanLimit} partner IDs via anonymousLogin…`);
     const tried = new Set(candidates.map(c => c.partnerId));
     for (let id = 2500; id <= 5500 && probesAttempted < deepScanLimit; id++) {
       if (tried.has(id)) continue;
       tried.add(id);
       probesAttempted++;
-      const hit = await probePartner(request, {
-        partnerId: id,
-        source: "deep scan probe",
-        weight: 0,
-      });
+      const hit = await probePartner(
+        request,
+        {
+          partnerId: id,
+          source: "deep scan anonymousLogin",
+          weight: 0,
+          applicationName,
+        },
+        applicationName,
+      );
       if (hit?.confidence === "verified") {
         hits.push(hit);
         notes.push(`Deep scan found partner ${id} after ${probesAttempted} probes.`);
         break;
       }
     }
-    if (!hits.some(h => h.confidence === "verified")) {
+    if (!hasVerified()) {
       notes.push("Deep scan did not find a working partner ID in the scanned range.");
     }
   }
@@ -154,11 +191,10 @@ export async function discoverKalturaOttPartner(
 
   return {
     ok: dedupedHits.some(h => h.confidence === "verified"),
-    inputUrl,
-    domain,
+    applicationName,
+    inputUrl: applicationName,
     hits: dedupedHits,
     candidates: candidates.map(c => c.partnerId),
-    scannedScripts,
     probesAttempted,
     elapsedMs: Date.now() - started,
     notes,
@@ -166,116 +202,20 @@ export async function discoverKalturaOttPartner(
 }
 
 function emptyResult(
-  inputUrl: string,
-  domain: string,
+  applicationName: string,
   started: number,
   notes: string[],
 ): DiscoverKalturaOttResult {
   return {
     ok: false,
-    inputUrl,
-    domain,
+    applicationName,
+    inputUrl: applicationName,
     hits: [],
     candidates: [],
-    scannedScripts: 0,
     probesAttempted: 0,
     elapsedMs: Date.now() - started,
     notes,
   };
-}
-
-function normalizePageUrl(raw: string): URL {
-  const trimmed = raw.trim();
-  const withProto = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-  const url = new URL(withProto);
-  if (!url.hostname) throw new Error("missing hostname");
-  return url;
-}
-
-async function fetchText(
-  request: RequestClient,
-  url: string,
-  referer: string,
-  timeoutMs: number,
-): Promise<string> {
-  const signal =
-    typeof AbortSignal !== "undefined" && "timeout" in AbortSignal
-      ? AbortSignal.timeout(timeoutMs)
-      : undefined;
-  return request.text(url, {
-    signal,
-    headers: {
-      Accept: "text/html,application/xhtml+xml,application/json,text/plain,*/*",
-      Referer: referer,
-      "User-Agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-    },
-  });
-}
-
-function extractScriptUrls(html: string, base: URL): string[] {
-  const out: string[] = [];
-  const re = /<script[^>]+src=["']([^"']+)["']/gi;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(html))) {
-    try {
-      out.push(new URL(m[1], base).toString());
-    } catch {
-      /* skip */
-    }
-  }
-  return [...new Set(out)];
-}
-
-function extractCandidatesFromText(
-  text: string,
-  source: string,
-  map: Map<number, CandidateMeta>,
-): void {
-  scanRegex(text, PARTNER_ID_RE, 5, source, map);
-  scanRegex(text, HOST_PREFIX_RE, 6, source, map);
-  scanRegex(text, IMAGE_PARTNER_RE, 4, source, map);
-
-  for (const m of text.matchAll(LINEUP_RE)) {
-    const lineupId = Number(m[1]);
-    if (!Number.isFinite(lineupId)) continue;
-    for (const id of [...map.keys()]) {
-      const prev = map.get(id);
-      if (prev && !prev.lineupId) {
-        map.set(id, { ...prev, lineupId });
-      }
-    }
-  }
-
-  for (const m of text.matchAll(APP_NAME_RE)) {
-    const app = m[1];
-    for (const id of [...map.keys()]) {
-      const prev = map.get(id);
-      if (prev && !prev.applicationName) {
-        map.set(id, { ...prev, applicationName: app });
-      }
-    }
-  }
-
-  for (const m of text.matchAll(OTT_HOST_RE)) {
-    scanRegex(m[0], HOST_PREFIX_RE, 6, `${source} (ott url)`, map);
-  }
-}
-
-function scanRegex(
-  text: string,
-  re: RegExp,
-  weight: number,
-  source: string,
-  map: Map<number, CandidateMeta>,
-): void {
-  re.lastIndex = 0;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(text))) {
-    const partnerId = Number(m[1]);
-    if (!Number.isFinite(partnerId) || partnerId < 100 || partnerId > 9_999_999) continue;
-    addCandidate(map, partnerId, source, weight);
-  }
 }
 
 function addCandidate(
@@ -301,8 +241,10 @@ function addCandidate(
 async function probePartner(
   request: RequestClient,
   candidate: CandidateMeta,
+  applicationName: string,
 ): Promise<PartnerDiscoveryHit | null> {
   const loginAttempts = buildLoginAttempts(candidate.partnerId);
+  let loginHit: PartnerDiscoveryHit | null = null;
 
   for (const attempt of loginAttempts) {
     try {
@@ -325,7 +267,7 @@ async function probePartner(
         channelCount = await probeChannelCount(request, attempt, data.result.ks, lineupId);
       }
 
-      return {
+      loginHit = {
         partnerId: candidate.partnerId,
         confidence: "verified",
         source: candidate.source,
@@ -334,26 +276,95 @@ async function probePartner(
         apiVersion: attempt.apiVersion,
         lineupId,
         channelCount,
-        applicationName: candidate.applicationName,
+        applicationName,
         sampleUrl: lineupId
           ? `kaltura-ott:${candidate.partnerId}:lineup:${lineupId}`
           : `kaltura-ott:${candidate.partnerId}:channels`,
       };
+      break;
     } catch {
       /* try next login variant */
     }
   }
 
-  if (candidate.weight >= 4) {
-    return {
-      partnerId: candidate.partnerId,
-      confidence: "likely",
-      source: candidate.source,
-      sampleUrl: `kaltura-ott:${candidate.partnerId}:channels`,
-    };
+  if (!loginHit) {
+    if (candidate.weight >= 4) {
+      return {
+        partnerId: candidate.partnerId,
+        confidence: "likely",
+        source: candidate.source,
+        applicationName,
+        sampleUrl: `kaltura-ott:${candidate.partnerId}:channels`,
+      };
+    }
+    return null;
   }
 
-  return null;
+  // Reshet-style: confirm the Android package belongs to this partner via serveByDevice.
+  const deviceOk = await probeServeByDevice(request, candidate.partnerId, applicationName);
+  if (deviceOk) {
+    loginHit.source = `${loginHit.source}; serveByDevice matched ${applicationName}`;
+  } else if (candidate.weight < 8) {
+    // Anonymous login works for many partners; without an app-specific device match,
+    // keep verified only for strong app-FQDN / preset hints.
+    loginHit.confidence = "likely";
+    loginHit.source = `${loginHit.source}; anonymousLogin ok (serveByDevice did not confirm app)`;
+  }
+
+  return loginHit;
+}
+
+async function probeServeByDevice(
+  request: RequestClient,
+  partnerId: number,
+  applicationName: string,
+): Promise<boolean> {
+  const hosts = [
+    `https://${partnerId}.frp1.ott.kaltura.com`,
+    "https://api.frp1.ott.kaltura.com",
+  ];
+  const platforms = ["Android", "STB"] as const;
+  const apiVersions = ["8.5.0.30179", "5.4.0.28193", "8.5.0"] as const;
+
+  for (const apiHost of hosts) {
+    for (const platform of platforms) {
+      for (const apiVersion of apiVersions) {
+        try {
+          const data = await request.json<{
+            result?: unknown;
+            objectType?: string;
+            executionTime?: number;
+          }>(`${apiHost}/api_v3/service/configurations/action/serveByDevice`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              "User-Agent": "okhttp/5.0.0-alpha.6",
+            },
+            body: JSON.stringify({
+              apiVersion,
+              applicationName,
+              clientVersion: "1.0.0",
+              partnerId,
+              platform,
+              tag: "default",
+              udid: "405373f4b02c0b23",
+            }),
+          });
+          if (data && typeof data === "object") {
+            const asRecord = data as Record<string, unknown>;
+            if (asRecord.objectType === "KalturaAPIException") continue;
+            if (asRecord.result != null || asRecord.executionTime != null || Object.keys(asRecord).length > 0) {
+              return true;
+            }
+          }
+        } catch {
+          /* try next variant */
+        }
+      }
+    }
+  }
+  return false;
 }
 
 function presetLineup(partnerId: number): number | undefined {
@@ -462,18 +473,8 @@ function dedupeHits(hits: PartnerDiscoveryHit[]): PartnerDiscoveryHit[] {
   return [...byId.values()].sort((a, b) => rankConfidence(b.confidence) - rankConfidence(a.confidence));
 }
 
-function shortUrl(url: string): string {
-  try {
-    const u = new URL(url);
-    return u.pathname.split("/").pop() || u.pathname;
-  } catch {
-    return url.slice(0, 40);
-  }
-}
-
-/** Exported for unit tests — parse partner ids from arbitrary text. */
-export function scrapePartnerCandidates(text: string): number[] {
-  const map = new Map<number, CandidateMeta>();
-  extractCandidatesFromText(text, "test", map);
-  return [...map.keys()].sort((a, b) => (map.get(b)?.weight || 0) - (map.get(a)?.weight || 0));
+/** Exported for unit tests — normalize Android package FQDNs. */
+export function scrapePartnerCandidates(_text: string): number[] {
+  // Kept for backward-compat with older tests; website scrape path removed.
+  return [];
 }

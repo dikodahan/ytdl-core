@@ -3,7 +3,8 @@ import { YoutubeDL } from "../core/youtube-dl";
 import { discoverKalturaOttPartner } from "../extractor/kaltura-ott/discover";
 
 export interface DiscoverKalturaOttRequest {
-  url: string;
+  /** Android applicationId / package FQDN (e.g. com.cellcom.cellcomtv). */
+  applicationName: string;
   deepScan?: boolean;
   deepScanLimit?: number;
   proxy?: string;
@@ -13,12 +14,20 @@ export interface DiscoverKalturaOttRequest {
 
 export function parseDiscoverKalturaOttBody(raw: string): DiscoverKalturaOttRequest {
   const data = JSON.parse(raw || "{}") as Record<string, unknown>;
-  const url = typeof data.url === "string" ? data.url.trim() : "";
-  if (!url) throw new Error("url is required");
+  const applicationName =
+    (typeof data.applicationName === "string" && data.applicationName.trim()) ||
+    (typeof data.app === "string" && data.app.trim()) ||
+    (typeof data.packageName === "string" && data.packageName.trim()) ||
+    // Backward-compat: older clients sent website URL in `url`.
+    (typeof data.url === "string" && data.url.trim()) ||
+    "";
+  if (!applicationName) {
+    throw new Error("applicationName is required (Android app FQDN, e.g. com.cellcom.cellcomtv)");
+  }
 
   return {
-    url,
-    deepScan: data.deepScan === true,
+    applicationName,
+    deepScan: data.deepScan === true ? true : data.deepScan === false ? false : undefined,
     deepScanLimit:
       typeof data.deepScanLimit === "number" && data.deepScanLimit > 0
         ? Math.min(Math.floor(data.deepScanLimit), 500)
@@ -42,7 +51,7 @@ export async function runDiscoverKalturaOtt(parsed: DiscoverKalturaOttRequest) {
   });
 
   try {
-    const result = await discoverKalturaOttPartner(ydl.request, parsed.url, {
+    const result = await discoverKalturaOttPartner(ydl.request, parsed.applicationName, {
       deepScan: parsed.deepScan,
       deepScanLimit: parsed.deepScanLimit,
     });
