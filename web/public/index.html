@@ -100,8 +100,8 @@
         </header>
         <p class="modal-lede">
           Enter the Android app package FQDN (e.g. <code>com.cellcom.cellcomtv</code> or
-          <code>com.kaltura.reshet.atv</code>). The lab probes Kaltura OTT
-          <code>anonymousLogin</code> (and <code>serveByDevice</code> when available) to identify the partner ID.
+          <code>com.kaltura.reshet.atv</code>). Quick discover checks known mappings.
+          Use a discovery job to scan partner IDs <code>1000–9999</code> until a match is found.
         </p>
         <label class="field">
           <span>Android app FQDN</span>
@@ -114,14 +114,10 @@
             required
           />
         </label>
-        <label class="option-bool">
-          <input id="kaltura-ott-discover-deep" type="checkbox" />
-          <span>Deep scan (slower — probes partner IDs 2500–5500 if the package is unknown)</span>
-        </label>
         <p id="kaltura-ott-discover-status" class="hint" aria-live="polite"></p>
         <div id="kaltura-ott-discover-results" class="discover-results"></div>
         <footer class="modal-actions">
-          <button type="button" id="kaltura-ott-discover-run">Discover partner</button>
+          <button type="button" id="kaltura-ott-discover-run">Quick discover</button>
           <button type="button" class="ghost" id="kaltura-ott-discover-cancel">Close</button>
         </footer>
       </form>

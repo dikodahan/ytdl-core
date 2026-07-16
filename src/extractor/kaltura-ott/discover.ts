@@ -16,14 +16,43 @@ export interface PartnerDiscoveryHit {
   sampleUrl: string;
 }
 
+export const PARTNER_ID_SCAN_MIN = 1000;
+export const PARTNER_ID_SCAN_MAX = 9999;
+
 export interface DiscoverKalturaOttOptions {
   /**
-   * Probe partner IDs sequentially when app hints find nothing (default true
-   * for unknown Android package names).
+   * When true, briefly sample the partner-ID range (capped by deepScanLimit).
+   * Prefer `scanKalturaOttPartnerIds` / a discovery job for a full 1000–9999 scan.
    */
   deepScan?: boolean;
-  /** Max login probes during deep scan (default 120). */
+  /** Max login probes during inline deep scan (default 120). */
   deepScanLimit?: number;
+}
+
+export interface ScanKalturaOttPartnerIdsOptions {
+  from?: number;
+  to?: number;
+  /** Called after each probe (and after known-hint probes). */
+  onProgress?: (progress: {
+    currentId: number;
+    probed: number;
+    total: number;
+    hit: PartnerDiscoveryHit | null;
+  }) => void | Promise<void>;
+  /** Return true to abort the scan early (e.g. user stop). */
+  shouldStop?: () => boolean;
+}
+
+export interface ScanKalturaOttPartnerIdsResult {
+  applicationName: string;
+  hit: PartnerDiscoveryHit | null;
+  probed: number;
+  total: number;
+  from: number;
+  to: number;
+  stoppedEarly: boolean;
+  elapsedMs: number;
+  notes: string[];
 }
 
 export interface DiscoverKalturaOttResult {
@@ -139,10 +168,11 @@ export async function discoverKalturaOttPartner(
   }
 
   const knownHit = candidateMap.size > 0;
-  const deepScan = options.deepScan === true || (!knownHit && options.deepScan !== false);
-  if (!knownHit) {
+  // Inline deep scan is opt-in only — full-range scans belong in a discovery job.
+  const deepScan = options.deepScan === true;
+  if (!knownHit && !deepScan) {
     notes.push(
-      `No built-in mapping for ${applicationName}; probing anonymousLogin to identify partner ID.`,
+      `No built-in mapping for ${applicationName}. Create a discovery job to scan partner IDs ${PARTNER_ID_SCAN_MIN}–${PARTNER_ID_SCAN_MAX}.`,
     );
   }
 
@@ -156,12 +186,18 @@ export async function discoverKalturaOttPartner(
     if (hit) hits.push(hit);
   }
 
-  const hasVerified = () => hits.some(h => h.confidence === "verified");
+  const hasMatch = () => hits.some(h => isDiscoveryMatch(h));
 
-  if (!hasVerified() && deepScan) {
-    notes.push(`Deep scan: probing up to ${deepScanLimit} partner IDs via anonymousLogin…`);
+  if (!hasMatch() && deepScan) {
+    notes.push(
+      `Inline deep scan: probing up to ${deepScanLimit} partner IDs from ${PARTNER_ID_SCAN_MIN} (prefer a discovery job for the full range).`,
+    );
     const tried = new Set(candidates.map(c => c.partnerId));
-    for (let id = 2500; id <= 5500 && probesAttempted < deepScanLimit; id++) {
+    for (
+      let id = PARTNER_ID_SCAN_MIN;
+      id <= PARTNER_ID_SCAN_MAX && probesAttempted < deepScanLimit;
+      id++
+    ) {
       if (tried.has(id)) continue;
       tried.add(id);
       probesAttempted++;
@@ -175,14 +211,16 @@ export async function discoverKalturaOttPartner(
         },
         applicationName,
       );
-      if (hit?.confidence === "verified") {
+      if (hit && isDiscoveryMatch(hit)) {
         hits.push(hit);
         notes.push(`Deep scan found partner ${id} after ${probesAttempted} probes.`);
         break;
       }
     }
-    if (!hasVerified()) {
-      notes.push("Deep scan did not find a working partner ID in the scanned range.");
+    if (!hasMatch()) {
+      notes.push(
+        `Inline deep scan did not find a partner ID in the first ${deepScanLimit} probes. Use a discovery job to continue through ${PARTNER_ID_SCAN_MAX}.`,
+      );
     }
   }
 
@@ -190,12 +228,165 @@ export async function discoverKalturaOttPartner(
   const dedupedHits = dedupeHits(hits);
 
   return {
-    ok: dedupedHits.some(h => h.confidence === "verified"),
+    ok: dedupedHits.some(h => isDiscoveryMatch(h)),
     applicationName,
     inputUrl: applicationName,
     hits: dedupedHits,
     candidates: candidates.map(c => c.partnerId),
     probesAttempted,
+    elapsedMs: Date.now() - started,
+    notes,
+  };
+}
+
+/** True when anonymousLogin (and optional serveByDevice) produced a usable partner hit. */
+export function isDiscoveryMatch(hit: PartnerDiscoveryHit | null | undefined): boolean {
+  if (!hit) return false;
+  return hit.confidence === "verified" || hit.confidence === "likely";
+}
+
+/**
+ * Full partner-ID scan for discovery jobs. Tries known app hints first, then
+ * walks `from`→`to` (default 1000–9999), stopping on the first match.
+ */
+export async function scanKalturaOttPartnerIds(
+  request: RequestClient,
+  applicationNameOrUrl: string,
+  options: ScanKalturaOttPartnerIdsOptions = {},
+): Promise<ScanKalturaOttPartnerIdsResult> {
+  const started = Date.now();
+  const notes: string[] = [];
+  const applicationName = normalizeAndroidApplicationName(applicationNameOrUrl);
+  const from = Math.max(
+    PARTNER_ID_SCAN_MIN,
+    Math.floor(options.from ?? PARTNER_ID_SCAN_MIN),
+  );
+  const to = Math.min(PARTNER_ID_SCAN_MAX, Math.floor(options.to ?? PARTNER_ID_SCAN_MAX));
+  if (to < from) {
+    throw new Error(`Invalid partner ID range: ${from}–${to}`);
+  }
+
+  const total = to - from + 1;
+  let probed = 0;
+  let hit: PartnerDiscoveryHit | null = null;
+  let stoppedEarly = false;
+
+  const candidateMap = new Map<number, CandidateMeta>();
+  for (const hint of APP_FQDN_HINTS) {
+    if (hint.applicationName.toLowerCase() === applicationName.toLowerCase()) {
+      addCandidate(candidateMap, hint.partnerId, hint.label, 10, {
+        applicationName,
+        lineupId: hint.lineupId,
+      });
+    }
+  }
+  for (const preset of Object.values(KALTURA_OTT_PRESETS)) {
+    const presetApp = preset.deviceConfig?.applicationName;
+    if (presetApp && presetApp.toLowerCase() === applicationName.toLowerCase()) {
+      addCandidate(candidateMap, preset.partnerId, `preset deviceConfig (${preset.alias})`, 10, {
+        applicationName,
+        lineupId: preset.defaultLineupId || undefined,
+      });
+    }
+  }
+  for (const hint of PACKAGE_KEYWORD_HINTS) {
+    if (hint.pattern.test(applicationName)) {
+      addCandidate(candidateMap, hint.partnerId, hint.label, 4, { applicationName });
+    }
+  }
+
+  const tried = new Set<number>();
+  const hintCandidates = [...candidateMap.values()].sort((a, b) => b.weight - a.weight);
+
+  for (const c of hintCandidates) {
+    if (options.shouldStop?.()) {
+      stoppedEarly = true;
+      break;
+    }
+    tried.add(c.partnerId);
+    probed++;
+    hit = await probePartner(request, { ...c, applicationName }, applicationName, {
+      requireStrongMatch: true,
+    });
+    await options.onProgress?.({
+      currentId: c.partnerId,
+      probed,
+      total,
+      hit: isDiscoveryMatch(hit) ? hit : null,
+    });
+    if (isDiscoveryMatch(hit)) {
+      notes.push(`Matched partner ${hit!.partnerId} via ${hit!.source}.`);
+      return {
+        applicationName,
+        hit,
+        probed,
+        total,
+        from,
+        to,
+        stoppedEarly: false,
+        elapsedMs: Date.now() - started,
+        notes,
+      };
+    }
+    hit = null;
+  }
+
+  for (let id = from; id <= to; id++) {
+    if (options.shouldStop?.()) {
+      stoppedEarly = true;
+      notes.push(`Scan stopped by user at partner ID ${id}.`);
+      break;
+    }
+    if (tried.has(id)) continue;
+    tried.add(id);
+    probed++;
+    hit = await probePartner(
+      request,
+      {
+        partnerId: id,
+        source: "range scan anonymousLogin",
+        weight: 0,
+        applicationName,
+      },
+      applicationName,
+      { loginOnly: true },
+    );
+    const match = isDiscoveryMatch(hit) ? hit : null;
+    await options.onProgress?.({
+      currentId: id,
+      probed,
+      total,
+      hit: match,
+    });
+    if (match) {
+      notes.push(`Matched partner ${match.partnerId} after ${probed} probes.`);
+      return {
+        applicationName,
+        hit: match,
+        probed,
+        total,
+        from,
+        to,
+        stoppedEarly: false,
+        elapsedMs: Date.now() - started,
+        notes,
+      };
+    }
+    hit = null;
+  }
+
+  if (!stoppedEarly && !hit) {
+    notes.push(`No partner ID found in range ${from}–${to} after ${probed} probes.`);
+  }
+
+  return {
+    applicationName,
+    hit: null,
+    probed,
+    total,
+    from,
+    to,
+    stoppedEarly,
     elapsedMs: Date.now() - started,
     notes,
   };
@@ -242,6 +433,7 @@ async function probePartner(
   request: RequestClient,
   candidate: CandidateMeta,
   applicationName: string,
+  opts: { loginOnly?: boolean; requireStrongMatch?: boolean } = {},
 ): Promise<PartnerDiscoveryHit | null> {
   const loginAttempts = buildLoginAttempts(candidate.partnerId);
   let loginHit: PartnerDiscoveryHit | null = null;
@@ -263,7 +455,7 @@ async function probePartner(
 
       let lineupId = candidate.lineupId || presetLineup(candidate.partnerId);
       let channelCount: number | undefined;
-      if (lineupId) {
+      if (lineupId && !opts.loginOnly) {
         channelCount = await probeChannelCount(request, attempt, data.result.ks, lineupId);
       }
 
@@ -300,18 +492,86 @@ async function probePartner(
     return null;
   }
 
+  // Range scans: anonymousLogin first (fast reject), then confirm app via serveByDevice.
+  if (opts.loginOnly) {
+    const deviceOk = await probeServeByDeviceQuick(
+      request,
+      loginHit.apiHost!,
+      candidate.partnerId,
+      applicationName,
+      loginHit.apiVersion,
+    );
+    if (!deviceOk) {
+      return null;
+    }
+    loginHit.confidence = "verified";
+    loginHit.source = `${loginHit.source}; serveByDevice matched ${applicationName}`;
+    return loginHit;
+  }
+
   // Reshet-style: confirm the Android package belongs to this partner via serveByDevice.
   const deviceOk = await probeServeByDevice(request, candidate.partnerId, applicationName);
   if (deviceOk) {
     loginHit.source = `${loginHit.source}; serveByDevice matched ${applicationName}`;
-  } else if (candidate.weight < 8) {
-    // Anonymous login works for many partners; without an app-specific device match,
-    // keep verified only for strong app-FQDN / preset hints.
+  } else if (candidate.weight < 8 && !opts.requireStrongMatch) {
     loginHit.confidence = "likely";
     loginHit.source = `${loginHit.source}; anonymousLogin ok (serveByDevice did not confirm app)`;
+  } else if (candidate.weight < 8 && opts.requireStrongMatch) {
+    // Keep verified for strong app-FQDN hints even without serveByDevice.
+    loginHit.source = `${loginHit.source}; anonymousLogin ok`;
   }
 
   return loginHit;
+}
+
+async function probeServeByDeviceQuick(
+  request: RequestClient,
+  apiHost: string,
+  partnerId: number,
+  applicationName: string,
+  apiVersion?: string,
+): Promise<boolean> {
+  const versions = apiVersion
+    ? [apiVersion, "8.5.0.30179", "5.4.0.28193"]
+    : ["8.5.0.30179", "5.4.0.28193"];
+  const platforms = ["Android", "STB"] as const;
+
+  for (const platform of platforms) {
+    for (const version of versions) {
+      try {
+        const data = await request.json<{
+          result?: unknown;
+          objectType?: string;
+        }>(`${apiHost}/api_v3/service/configurations/action/serveByDevice`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "User-Agent": "okhttp/5.0.0-alpha.6",
+          },
+          body: JSON.stringify({
+            apiVersion: version,
+            applicationName,
+            clientVersion: "1.0.0",
+            partnerId,
+            platform,
+            tag: "default",
+            udid: "405373f4b02c0b23",
+          }),
+        });
+        if (data && typeof data === "object") {
+          const asRecord = data as Record<string, unknown>;
+          if (asRecord.objectType === "KalturaAPIException") continue;
+          if (asRecord.result != null || Object.keys(asRecord).length > 0) {
+            return true;
+          }
+        }
+      } catch {
+        /* try next */
+      }
+    }
+  }
+  return false;
 }
 
 async function probeServeByDevice(

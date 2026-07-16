@@ -409,7 +409,7 @@ function wireKalturaOttDiscoverModal() {
 
     const status = $("kaltura-ott-discover-status");
     const runBtn = $("kaltura-ott-discover-run");
-    status.textContent = "Probing Kaltura OTT anonymousLogin for this Android app…";
+    status.textContent = "Checking known mappings and anonymousLogin…";
     status.className = "hint";
     runBtn.disabled = true;
     $("kaltura-ott-discover-results").innerHTML = "";
@@ -420,7 +420,6 @@ function wireKalturaOttDiscoverModal() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           applicationName,
-          deepScan: $("kaltura-ott-discover-deep")?.checked === true,
         }),
       });
       const data = await res.json();
@@ -430,8 +429,10 @@ function wireKalturaOttDiscoverModal() {
         return;
       }
       renderDiscoverResults(data);
-      const verified = data.hits?.filter(h => h.confidence === "verified").length || 0;
-      status.textContent = `Done in ${data.elapsedMs}ms · ${data.probesAttempted} probes · ${verified} verified`;
+      const verified = data.hits?.filter(h => h.confidence === "verified" || h.confidence === "likely").length || 0;
+      status.textContent = verified
+        ? `Found ${verified} hit(s) in ${data.elapsedMs}ms`
+        : "No quick match — create a discovery job to scan partner IDs 1000–9999.";
       status.className = verified ? "hint ok" : "hint warn";
     } catch (err) {
       status.textContent = err.message || String(err);
