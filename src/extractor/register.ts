@@ -76,6 +76,7 @@ import { FoxNewsIE } from "./foxnews";
 import { YouPornIE } from "./youporn";
 import { YouJizzIE } from "./youjizz";
 import { XnxxIE } from "./xnxx";
+import { FamelackIE } from "./famelack";
 
 // Batch 6 — hosts / short clips
 import { GoogleDriveIE } from "./googledrive";
@@ -173,6 +174,7 @@ export function registerBuiltInExtractors(): void {
   registerExtractor(YouPornIE);
   registerExtractor(YouJizzIE);
   registerExtractor(XnxxIE);
+  registerExtractor(FamelackIE);
 
   // Batch 6 — hosts / short clips
   registerExtractor(GoogleDriveIE);
@@ -266,6 +268,7 @@ export {
   YouPornIE,
   YouJizzIE,
   XnxxIE,
+  FamelackIE,
 };
 export {
   GoogleDriveIE,

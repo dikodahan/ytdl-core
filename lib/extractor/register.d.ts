@@ -63,6 +63,7 @@ import { FoxNewsIE } from "./foxnews";
 import { YouPornIE } from "./youporn";
 import { YouJizzIE } from "./youjizz";
 import { XnxxIE } from "./xnxx";
+import { FamelackIE } from "./famelack";
 import { GoogleDriveIE } from "./googledrive";
 import { DropboxIE } from "./dropbox";
 import { ImgurIE } from "./imgur";
@@ -80,6 +81,6 @@ export { VimeoIE, TwitchIE, TiktokIE, TwitterIE, InstagramIE, FacebookIE, Reddit
 export { BandcampIE, RumbleIE, KickIE, PatreonIE, BlueskyIE, BitchuteIE, NewgroundsIE, NinegagIE, CoubIE, PeertubeIE, };
 export { NiconicoIE, AfreecaTVIE, NaverIE, IqiyiIE, YoukuIE, FC2IE, WeiboIE, XiaoHongShuIE, VKIE, OdnoklassnikiIE, };
 export { AudiomackIE, ApplePodcastsIE, MixcloudIE, SoundgasmIE, AcastIE, Art19IE, YandexMusicIE, AudiusIE, BandlabIE, ReverbNationIE, };
-export { ArchiveOrgIE, BbcIE, ArdIE, ArteIE, PbsIE, CnnIE, NbcIE, AbcIE, BloombergIE, ReutersIE, FoxNewsIE, YouPornIE, YouJizzIE, XnxxIE, };
+export { ArchiveOrgIE, BbcIE, ArdIE, ArteIE, PbsIE, CnnIE, NbcIE, AbcIE, BloombergIE, ReutersIE, FoxNewsIE, YouPornIE, YouJizzIE, XnxxIE, FamelackIE, };
 export { GoogleDriveIE, DropboxIE, ImgurIE, RedGifsIE, StreamableIE, BoxIE, YandexDiskIE, MediaFireIE, PixeldrainIE, StreamjaIE, };
 //# sourceMappingURL=register.d.ts.map

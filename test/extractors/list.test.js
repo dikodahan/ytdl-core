@@ -16,12 +16,13 @@ const LIST_CASES = [
   ["youporn-category", "https://www.youporn.com/category/amateur/"],
   ["youjizz", "https://www.youjizz.com/categories/teen-1.html"],
   ["xnxx", "https://www.xnxx.com/search/amateur/"],
+  ["famelack", "https://famelack.com/tv/us"],
 ];
 
 describe("video list API", () => {
   it("registers list-capable extractors", () => {
     const names = listListCapableExtractors().map(ie => ie.IE_NAME).sort();
-    assert.deepEqual(names, ["xnxx", "youjizz", "youporn"]);
+    assert.deepEqual(names, ["famelack", "xnxx", "youjizz", "youporn"]);
   });
 
   for (const [name, url] of LIST_CASES) {
@@ -66,6 +67,10 @@ describe("video list API", () => {
           assert.match(entry.id, /^[a-z0-9]+$/i);
           assert.match(entry.url, /xnxx\.com\/video-/);
           if (entry.thumbnail) assert.match(entry.thumbnail, /^https?:\/\//);
+        }
+        if (service === "famelack") {
+          assert.match(entry.id, /^[A-Za-z0-9]+$/);
+          assert.match(entry.url, /famelack\.com\/tv\//);
         }
       }
     });

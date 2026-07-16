@@ -442,6 +442,16 @@ export const URL_USAGE: Record<string, UrlUsageGuide> = {
     ],
     notes: "Adult content (18+). Use `POST /api/v1/list` for search/category id lists.",
   },
+  famelack: {
+    usage:
+      "Paste a Famelack live TV channel URL (`famelack.com/tv/{country|category}/{nanoid}`).",
+    examples: [
+      "https://famelack.com/tv/us/BTtTvg520N96K8",
+      "https://famelack.com/tv/news/KB99Wa2uILCWk1",
+    ],
+    notes:
+      "Resolves HLS streams from the public famelack-data catalog. YouTube-only channels return a YouTube watch URL.",
+  },
 
   // Batch 6 — hosts / short clips
   googledrive: {
@@ -529,6 +539,19 @@ export const LIST_URL_USAGE: Record<string, UrlUsageGuide> = {
     categoriesIndexUrl: "https://www.xnxx.com/tags",
     notes:
       "Returns alphanumeric video ids, optional listing thumbnails, and `https://www.xnxx.com/video-{id}/…` links. Pagination uses trailing `/0`, `/1`, … (page 1 has no suffix).",
+  },
+  famelack: {
+    usage:
+      "Paste a Famelack TV browse URL: `/tv/{country}` (2-letter code) or `/tv/{category}` (e.g. news, sports).",
+    examples: [
+      "https://famelack.com/tv/us",
+      "https://famelack.com/tv/news",
+    ],
+    defaultUrl: "https://famelack.com/tv/us",
+    categoriesDefaultUrl: "https://famelack.com/tv",
+    categoriesIndexUrl: "https://famelack.com/tv/categories",
+    notes:
+      "Returns channel nanoids and `https://famelack.com/tv/{scope}/{nanoid}` links. Use `list-categories` with `/tv` for countries or `/tv/categories` for genres.",
   },
 };
 
