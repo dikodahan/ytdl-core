@@ -4,7 +4,13 @@ const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
 const { registerBuiltInExtractors } = require("../../lib/extractor/register");
 const { resolveExtractor, resolveListExtractor } = require("../../lib/core/registry");
-const { pickChannelLogo, pickStreamFormats } = require("../../lib/extractor/kaltura-ott/client");
+const {
+  KalturaOttAuthenticationError,
+  KalturaOttSubscriptionRequiredError,
+  pickChannelLogo,
+  pickStreamFormats,
+} = require("../../lib/extractor/kaltura-ott/client");
+const { KalturaOttIE } = require("../../lib/extractor/kaltura-ott/kaltura-ott");
 const {
   mergePresetOverrides,
   resolvePartnerPreset,
@@ -31,6 +37,16 @@ describe("kaltura-ott presets", () => {
 });
 
 describe("kaltura-ott helpers", () => {
+  it("exposes password input metadata and safe authentication errors", () => {
+    const password = KalturaOttIE.getInfo().options.find(option => option.key === "password");
+    assert.equal(password?.type, "password");
+    assert.doesNotMatch(new KalturaOttAuthenticationError().message, /secret|password123/i);
+    assert.match(
+      new KalturaOttSubscriptionRequiredError(false).message,
+      /requires a subscription/i,
+    );
+  });
+
   it("pickChannelLogo prefers TVGuide_1x1", () => {
     const url = pickChannelLogo([
       { imageTypeName: "16x9", url: "https://example.com/16x9.png" },
@@ -128,5 +144,17 @@ describe("kaltura-ott live API", () => {
     assert.equal(result.extractor, "kaltura-ott");
     assert.ok(result.entries.length >= 1);
     assert.match(result.entries[0].url, /^kaltura-ott:cellcom:live:\d+$/);
+  });
+
+  it("reports Cellcom subscription requirements for anonymous playback", { timeout: 30_000 }, async () => {
+    await assert.rejects(
+      () =>
+        extractInfo("kaltura-ott:cellcom:live:803437", {
+          service: "kaltura-ott",
+        }),
+      error =>
+        error?.code === "KALTURA_OTT_SUBSCRIPTION_REQUIRED" &&
+        /requires a subscription/i.test(error.message),
+    );
   });
 });

@@ -5,6 +5,20 @@ export interface KalturaOttSession {
     sessionId: string | null;
     expiry: number | null;
 }
+export interface KalturaOttCredentials {
+    username: string;
+    password: string;
+}
+export declare class KalturaOttAuthenticationError extends Error {
+    readonly code = "KALTURA_OTT_AUTHENTICATION_FAILED";
+    readonly statusCode = 401;
+    constructor(message?: string);
+}
+export declare class KalturaOttSubscriptionRequiredError extends Error {
+    readonly code = "KALTURA_OTT_SUBSCRIPTION_REQUIRED";
+    readonly statusCode = 403;
+    constructor(authenticated: boolean);
+}
 export interface KalturaOttImage {
     url?: string;
     imageTypeName?: string;
@@ -49,8 +63,9 @@ interface KalturaPlaybackSource {
 export declare class KalturaOttClient {
     private readonly request;
     private readonly preset;
+    private readonly credentials?;
     private session;
-    constructor(request: RequestClient, preset: KalturaOttPartnerPreset);
+    constructor(request: RequestClient, preset: KalturaOttPartnerPreset, credentials?: KalturaOttCredentials | undefined);
     ensureSession(): Promise<KalturaOttSession>;
     private serveByDevice;
     private apiBase;
@@ -61,6 +76,7 @@ export declare class KalturaOttClient {
     private fetchEpgCache;
     private fetchEpgSearch;
     getProgramPlayback(programId: number, context?: "CATCHUP" | "START_OVER" | "PLAYBACK"): Promise<KalturaPlaybackSource[]>;
+    getLivePlayback(assetId: number): Promise<KalturaPlaybackSource[]>;
     getProgramAsset(programId: number): Promise<KalturaOttProgramAsset>;
 }
 export declare function pickChannelLogo(images: KalturaOttImage[] | undefined): string | null;

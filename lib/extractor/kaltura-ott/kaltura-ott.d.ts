@@ -12,6 +12,7 @@ export declare class KalturaOttIE extends InfoExtractor {
     static listUrlSupported(url: string): boolean;
     private resolvePreset;
     private client;
+    private credentials;
     private epgDays;
     extract(url: string): Promise<InfoDict>;
     private extractLive;

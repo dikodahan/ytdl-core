@@ -7,6 +7,35 @@ export interface KalturaOttSession {
   expiry: number | null;
 }
 
+export interface KalturaOttCredentials {
+  username: string;
+  password: string;
+}
+
+export class KalturaOttAuthenticationError extends Error {
+  readonly code = "KALTURA_OTT_AUTHENTICATION_FAILED";
+  readonly statusCode = 401;
+
+  constructor(message = "Kaltura OTT authentication failed. Check the username and password.") {
+    super(message);
+    this.name = "KalturaOttAuthenticationError";
+  }
+}
+
+export class KalturaOttSubscriptionRequiredError extends Error {
+  readonly code = "KALTURA_OTT_SUBSCRIPTION_REQUIRED";
+  readonly statusCode = 403;
+
+  constructor(authenticated: boolean) {
+    super(
+      authenticated
+        ? "This Kaltura OTT channel requires a subscription that is not available to the authenticated account."
+        : "This Kaltura OTT channel requires a subscription. Supply a subscriber username and password.",
+    );
+    this.name = "KalturaOttSubscriptionRequiredError";
+  }
+}
+
 export interface KalturaOttImage {
   url?: string;
   imageTypeName?: string;
@@ -69,6 +98,8 @@ interface KalturaPlaybackSource {
 interface KalturaPlaybackContext {
   sources?: KalturaPlaybackSource[];
   error?: { message?: string; code?: string };
+  messages?: Array<{ message?: string; code?: string; objectType?: string }>;
+  actions?: Array<{ type?: string; objectType?: string }>;
 }
 
 const EPG_UNAVAILABLE = "המידע אינו זמין";
@@ -79,6 +110,7 @@ export class KalturaOttClient {
   constructor(
     private readonly request: RequestClient,
     private readonly preset: KalturaOttPartnerPreset,
+    private readonly credentials?: KalturaOttCredentials,
   ) {}
 
   async ensureSession(): Promise<KalturaOttSession> {
@@ -91,9 +123,11 @@ export class KalturaOttClient {
       await this.serveByDevice();
     }
 
-    const loginPath = this.preset.apiVersion.startsWith("5.")
-      ? "/api_v3/service/OTTUser/action/anonymousLogin"
-      : "/api_v3/service/ottuser/action/anonymousLogin";
+    const authenticated = Boolean(this.credentials);
+    const serviceName = this.preset.apiVersion.startsWith("5.") ? "OTTUser" : "ottuser";
+    const loginPath = authenticated
+      ? `/api_v3/service/${serviceName}/action/login`
+      : `/api_v3/service/${serviceName}/action/anonymousLogin`;
 
     const loginUrl = `${this.preset.apiHost}${loginPath}`;
     const body: Record<string, unknown> = {
@@ -101,6 +135,10 @@ export class KalturaOttClient {
       udid: this.preset.udid,
       apiVersion: this.preset.apiVersion,
     };
+    if (this.credentials) {
+      body.username = this.credentials.username;
+      body.password = this.credentials.password;
+    }
     if (this.preset.apiVersion.startsWith("5.")) {
       body.clientTag = this.preset.clientTag;
     } else {
@@ -123,9 +161,26 @@ export class KalturaOttClient {
       throw new Error(`Kaltura OTT login failed: HTTP ${res.statusCode}`);
     }
 
-    const data = res.json<{ result?: { ks?: string; expiry?: number } }>();
-    const ks = data.result?.ks;
-    if (!ks) throw new Error("Kaltura OTT login did not return ks");
+    const data = res.json<{
+      result?: {
+        ks?: string;
+        expiry?: number;
+        loginSession?: { ks?: string; expiry?: number };
+        error?: { code?: string; message?: string };
+      };
+    }>();
+    const result = data.result;
+    if (result?.error) {
+      if (authenticated) throw new KalturaOttAuthenticationError();
+      throw new Error(
+        `Kaltura OTT anonymous login failed${result.error.code ? ` (${result.error.code})` : ""}`,
+      );
+    }
+    const ks = result?.loginSession?.ks || result?.ks;
+    if (!ks) {
+      if (authenticated) throw new KalturaOttAuthenticationError();
+      throw new Error("Kaltura OTT login did not return ks");
+    }
 
     const sessionHeader =
       headerValue(res.headers, "x-kaltura-session") ||
@@ -134,7 +189,7 @@ export class KalturaOttClient {
     this.session = {
       ks,
       sessionId: sessionHeader,
-      expiry: data.result?.expiry ?? null,
+      expiry: result?.loginSession?.expiry ?? result?.expiry ?? null,
     };
     return this.session;
   }
@@ -375,6 +430,39 @@ export class KalturaOttClient {
     );
     if (result.error) {
       throw new Error(result.error.message || "Playback not available");
+    }
+    return result.sources || [];
+  }
+
+  async getLivePlayback(assetId: number): Promise<KalturaPlaybackSource[]> {
+    const result = await this.postApi<KalturaPlaybackContext>(
+      "/api_v3/service/asset/action/getPlaybackContext",
+      {
+        apiVersion: this.preset.apiVersion,
+        clientTag: this.preset.clientTag,
+        ignoreNull: true,
+        format: 1,
+        assetId,
+        assetType: "media",
+        contextDataParams: {
+          objectType: "KalturaPlaybackContextOptions",
+          context: "PLAYBACK",
+          streamerType: "applehttp",
+        },
+      },
+    );
+
+    const denied = result.messages?.find(message => message.code === "NotEntitled");
+    const blocked = result.actions?.some(
+      action =>
+        action.type === "BLOCK" ||
+        action.objectType === "KalturaAccessControlBlockAction",
+    );
+    if (denied || blocked) {
+      throw new KalturaOttSubscriptionRequiredError(Boolean(this.credentials));
+    }
+    if (result.error) {
+      throw new Error(result.error.message || "Kaltura OTT live playback is unavailable");
     }
     return result.sources || [];
   }

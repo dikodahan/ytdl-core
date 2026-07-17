@@ -6,8 +6,9 @@ import type { CategoryListEntry } from "../_shared/page-links";
 import { baseInfo, dashFormat, hlsFormat } from "../_shared/helpers";
 import {
   KalturaOttClient,
+  KalturaOttAuthenticationError,
   pickChannelLogo,
-  pickStreamFormats,
+  type KalturaOttCredentials,
   type KalturaOttLiveAsset,
   type KalturaOttProgramAsset,
 } from "./client";
@@ -80,6 +81,20 @@ export class KalturaOttIE extends InfoExtractor {
           default: "",
         },
         {
+          key: "username",
+          label: "Subscriber username",
+          type: "string",
+          description: "Optional provider username for subscription-protected channels",
+          default: "",
+        },
+        {
+          key: "password",
+          label: "Subscriber password",
+          type: "password",
+          description: "Optional provider password; sent only for this request",
+          default: "",
+        },
+        {
           key: "days",
           label: "EPG days",
           type: "number",
@@ -122,7 +137,20 @@ export class KalturaOttIE extends InfoExtractor {
   }
 
   private client(preset: KalturaOttPartnerPreset): KalturaOttClient {
-    return new KalturaOttClient(this.request, preset);
+    return new KalturaOttClient(this.request, preset, this.credentials());
+  }
+
+  private credentials(): KalturaOttCredentials | undefined {
+    const args = this.params.extractorArgs?.kalturaOtt as Record<string, unknown> | undefined;
+    const username = typeof args?.username === "string" ? args.username.trim() : "";
+    const password = typeof args?.password === "string" ? args.password : "";
+    if (!username && !password) return undefined;
+    if (!username || !password) {
+      throw new KalturaOttAuthenticationError(
+        "Kaltura OTT username and password must both be supplied.",
+      );
+    }
+    return { username, password };
   }
 
   private epgDays(parsed: ParsedOttUrl, preset: KalturaOttPartnerPreset): number {
@@ -160,12 +188,19 @@ export class KalturaOttIE extends InfoExtractor {
     assetId: number,
   ): Promise<InfoDict> {
     const asset = await client.getLiveAsset(assetId);
-    const { hls, dash } = pickStreamFormats(asset.mediaFiles);
+    const sources = await client.getLivePlayback(assetId);
     const formats: Format[] = [];
-    if (hls) formats.push(hlsFormat(hls, "hls"));
-    if (dash) formats.push(dashFormat(dash, "dash"));
+    for (const source of sources) {
+      if (!source.url) continue;
+      const type = (source.type || source.format || "").toUpperCase();
+      if (type.includes("DASH") || source.url.includes(".mpd")) {
+        formats.push(dashFormat(source.url, `dash-${formats.length + 1}`));
+      } else {
+        formats.push(hlsFormat(source.url, `hls-${formats.length + 1}`));
+      }
+    }
     if (!formats.length) {
-      throw new Error(`Kaltura OTT live asset ${assetId} has no HLS/DASH streams`);
+      throw new Error(`Kaltura OTT live asset ${assetId} has no playable streams`);
     }
 
     const channelNum = asset.metas?.ChannelNumber?.value;

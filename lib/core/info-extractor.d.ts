@@ -2,7 +2,7 @@ import type { InfoDict, YoutubeDLParams } from "./types";
 import type { RequestClient } from "../networking/request";
 import type { ListVideosOptions, VideoListResult } from "./video-list";
 export type { VideoListEntry, VideoListResult, ListVideosOptions } from "./video-list";
-export type ExtractorOptionType = "string" | "boolean" | "select" | "multiselect" | "textarea" | "number";
+export type ExtractorOptionType = "string" | "password" | "boolean" | "select" | "multiselect" | "textarea" | "number";
 export interface ExtractorOptionDef {
     key: string;
     label: string;
