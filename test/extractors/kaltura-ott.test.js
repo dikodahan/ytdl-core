@@ -5,7 +5,10 @@ const assert = require("node:assert/strict");
 const { registerBuiltInExtractors } = require("../../lib/extractor/register");
 const { resolveExtractor, resolveListExtractor } = require("../../lib/core/registry");
 const { pickChannelLogo, pickStreamFormats } = require("../../lib/extractor/kaltura-ott/client");
-const { resolvePartnerPreset } = require("../../lib/extractor/kaltura-ott/presets");
+const {
+  mergePresetOverrides,
+  resolvePartnerPreset,
+} = require("../../lib/extractor/kaltura-ott/presets");
 const { listVideos, extractInfo } = require("../../lib/index");
 
 registerBuiltInExtractors();
@@ -15,6 +18,15 @@ describe("kaltura-ott presets", () => {
     assert.equal(resolvePartnerPreset("reshet")?.partnerId, 5031);
     assert.equal(resolvePartnerPreset("cellcom")?.partnerId, 3197);
     assert.equal(resolvePartnerPreset("5031")?.partnerId, 5031);
+  });
+
+  it("applies an Android app FQDN override", () => {
+    const preset = resolvePartnerPreset("5031");
+    const configured = mergePresetOverrides(preset, {
+      applicationName: "com.kaltura.reshet.atv",
+    });
+    assert.equal(configured.deviceConfig.applicationName, "com.kaltura.reshet.atv");
+    assert.equal(configured.partnerId, 5031);
   });
 });
 

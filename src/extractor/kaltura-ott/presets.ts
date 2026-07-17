@@ -120,6 +120,10 @@ export function mergePresetOverrides(
 ): KalturaOttPartnerPreset {
   if (!overrides || typeof overrides !== "object") return preset;
   const o = overrides as Record<string, unknown>;
+  const applicationName =
+    typeof o.applicationName === "string" && o.applicationName.trim()
+      ? o.applicationName.trim()
+      : undefined;
   return {
     ...preset,
     ...(typeof o.apiHost === "string" ? { apiHost: o.apiHost } : {}),
@@ -131,5 +135,15 @@ export function mergePresetOverrides(
     ...(typeof o.channelFilterKsql === "string" ? { channelFilterKsql: o.channelFilterKsql } : {}),
     ...(o.epgStyle === "cache" || o.epgStyle === "search" ? { epgStyle: o.epgStyle } : {}),
     ...(typeof o.defaultEpgDays === "number" ? { defaultEpgDays: o.defaultEpgDays } : {}),
+    ...(applicationName
+      ? {
+          deviceConfig: {
+            applicationName,
+            clientVersion: preset.deviceConfig?.clientVersion || "1.0.0",
+            platform: preset.deviceConfig?.platform || "STB",
+            tag: preset.deviceConfig?.tag || "default",
+          },
+        }
+      : {}),
   };
 }

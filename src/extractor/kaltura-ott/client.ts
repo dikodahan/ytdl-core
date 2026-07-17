@@ -143,22 +143,44 @@ export class KalturaOttClient {
     const cfg = this.preset.deviceConfig;
     if (!cfg) return;
     const url = "https://api.frp1.ott.kaltura.com/api_v3/service/configurations/action/serveByDevice";
-    await this.request.json(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": this.preset.userAgent,
-      },
-      body: JSON.stringify({
-        apiVersion: this.preset.apiVersion.split(".")[0] + ".5.0",
-        applicationName: cfg.applicationName,
-        clientVersion: cfg.clientVersion,
-        partnerId: this.preset.partnerId,
-        platform: cfg.platform,
-        tag: cfg.tag,
-        udid: this.preset.udid,
-      }),
-    }).catch(() => undefined);
+    const data = await this.request
+      .json<{
+        params?: {
+          miniEPGCollectionId?: number | string;
+          Gateways?: { JsonGW?: string; RestGW?: string };
+        };
+      }>(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": this.preset.userAgent,
+        },
+        body: JSON.stringify({
+          apiVersion: this.preset.apiVersion.split(".")[0] + ".5.0",
+          applicationName: cfg.applicationName,
+          clientVersion: cfg.clientVersion,
+          partnerId: this.preset.partnerId,
+          platform: cfg.platform,
+          tag: cfg.tag,
+          udid: this.preset.udid,
+        }),
+      })
+      .catch(() => null);
+
+    const params = data?.params;
+    if (!params) return;
+    const lineupId = Number(params.miniEPGCollectionId);
+    if (Number.isFinite(lineupId) && lineupId > 0) {
+      this.preset.defaultLineupId = lineupId;
+      if (!this.preset.lineups.some(lineup => lineup.id === lineupId)) {
+        this.preset.lineups.push({
+          id: lineupId,
+          title: `${this.preset.alias} channels`,
+        });
+      }
+    }
+    const gateway = params.Gateways?.JsonGW || params.Gateways?.RestGW;
+    if (gateway) this.preset.apiHost = gateway.replace(/\/+$/, "");
   }
 
   private apiBase(): string {
