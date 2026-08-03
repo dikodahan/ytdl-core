@@ -17,12 +17,13 @@ const LIST_CASES = [
   ["youjizz", "https://www.youjizz.com/categories/teen-1.html"],
   ["xnxx", "https://www.xnxx.com/search/amateur/"],
   ["famelack", "https://famelack.com/tv/us"],
+  ["ontivi", "https://ip.ontivi.net/tv3"],
 ];
 
 describe("video list API", () => {
   it("registers list-capable extractors", () => {
     const names = listListCapableExtractors().map(ie => ie.IE_NAME).sort();
-    assert.deepEqual(names, ["famelack", "kaltura-ott", "xnxx", "youjizz", "youporn"]);
+    assert.deepEqual(names, ["famelack", "kaltura-ott", "ontivi", "xnxx", "youjizz", "youporn"]);
   });
 
   for (const [name, url] of LIST_CASES) {
@@ -71,6 +72,10 @@ describe("video list API", () => {
         if (service === "famelack") {
           assert.match(entry.id, /^[A-Za-z0-9]+$/);
           assert.match(entry.url, /famelack\.com\/tv\//);
+        }
+        if (service === "ontivi") {
+          assert.match(entry.id, /./);
+          assert.match(entry.url, /ontivi\.net\/.+\.html/);
         }
       }
     });

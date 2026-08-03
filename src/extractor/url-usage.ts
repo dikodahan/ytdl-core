@@ -465,6 +465,15 @@ export const URL_USAGE: Record<string, UrlUsageGuide> = {
     notes:
       "Resolves HLS streams from the public famelack-data catalog. YouTube-only channels return a YouTube watch URL.",
   },
+  ontivi: {
+    usage: "Paste an Ontivi live channel page (`ip.ontivi.net/{slug}.html`).",
+    examples: [
+      "https://ip.ontivi.net/024721-9-kanal-izrail.html",
+      "https://ip.ontivi.net/051810-pervyy-kanal.html",
+    ],
+    notes:
+      "Decodes Playerjs `file` + `kodk`/`kos` into an HLS URL on `s.ontivi.net`. Use listing URLs (`/tv3`) with list API to browse channels.",
+  },
 
   // Batch 6 — hosts / short clips
   googledrive: {
@@ -565,6 +574,20 @@ export const LIST_URL_USAGE: Record<string, UrlUsageGuide> = {
     categoriesIndexUrl: "https://famelack.com/tv/categories",
     notes:
       "Returns channel nanoids and `https://famelack.com/tv/{scope}/{nanoid}` links. Use `list-categories` with `/tv` for countries or `/tv/categories` for genres.",
+  },
+  ontivi: {
+    usage:
+      "Paste an Ontivi channel page, or a listing URL (`/tv3` / `/chanel?catgl=1`) to enumerate channels.",
+    examples: [
+      "https://ip.ontivi.net/024721-9-kanal-izrail.html",
+      "https://ip.ontivi.net/tv3",
+      "https://ip.ontivi.net/chanel?catgl=1",
+    ],
+    defaultUrl: "https://ip.ontivi.net/tv3",
+    categoriesDefaultUrl: "https://ip.ontivi.net/tv3",
+    categoriesIndexUrl: "https://ip.ontivi.net/tv3",
+    notes:
+      "Channel pages expose Playerjs `kodk`/`kos`/`file`; the extractor decodes the HLS URL on `s.ontivi.net`. Listing scrapes the channel grid from `/chanel?catgl=1`.",
   },
   "kaltura-ott": {
     usage:
