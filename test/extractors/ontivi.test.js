@@ -91,16 +91,24 @@ describe("ontivi live", { timeout: 45_000 }, () => {
     assert.ok(info.formats?.length >= 1);
     const hls = info.formats.find(f => f.isHLS || /m3u8/i.test(f.url || ""));
     assert.ok(hls, "expected HLS format");
-    assert.match(hls.url, /s\.ontivi\.net/);
+    // Prefer absolute tokenized playlist (not the gate ?k= URL with relative 302).
+    assert.match(
+      hls.url,
+      /^https:\/\/s\.ontivi\.net\/[A-Za-z0-9_-]{16,}\/\d+\/\d+\/index\.m3u8$/,
+      `expected tokenized playlist, got ${hls.url}`,
+    );
     assert.equal(hls.http_headers?.Referer, "https://ip.ontivi.net/");
+    // Dead mirrors like r.pokaz.me must not be the only/primary format.
+    assert.ok(!/r\.pokaz\.me/i.test(hls.url));
 
-    // Smoke: playlist should be reachable with referer
+    // Smoke: playlist body must be directly playable (no extra redirect required).
     const ydl = new YoutubeDL({ quiet: true });
     try {
       const res = await ydl.request.request(hls.url, {
         headers: hls.http_headers,
       });
-      assert.ok(res.statusCode === 200 || res.statusCode === 302, `status ${res.statusCode}`);
+      assert.equal(res.statusCode, 200, `status ${res.statusCode}`);
+      assert.match(res.body, /#EXTM3U/);
     } finally {
       await ydl.close?.().catch(() => undefined);
     }

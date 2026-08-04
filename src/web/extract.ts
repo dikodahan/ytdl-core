@@ -258,6 +258,7 @@ export async function runExtract(parsed: ExtractRequest) {
             ((f.has_video ?? f.hasVideo) && (f.has_audio ?? f.hasAudio) && f.url)
           ),
           url: f.url || f.manifest_url || null,
+          http_headers: f.http_headers || null,
         })),
         recommended: (() => {
           const f =
@@ -272,6 +273,7 @@ export async function runExtract(parsed: ExtractRequest) {
             resolution: f.resolution,
             client: f.client,
             url: f.url || f.manifest_url || null,
+            http_headers: f.http_headers || null,
           };
         })(),
       },

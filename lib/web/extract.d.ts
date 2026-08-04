@@ -101,6 +101,7 @@ export declare function runExtract(parsed: ExtractRequest): Promise<{
             client: string | undefined;
             vlc_ready: boolean;
             url: string | null;
+            http_headers: {} | null;
         }[];
         recommended: {
             format_id: string;
@@ -109,6 +110,7 @@ export declare function runExtract(parsed: ExtractRequest): Promise<{
             resolution: string | null | undefined;
             client: string | undefined;
             url: string | null;
+            http_headers: {} | null;
         } | null;
         error?: undefined;
     };

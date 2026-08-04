@@ -13,6 +13,13 @@ export declare class OntiviIE extends InfoExtractor {
     listCategories(url?: string, options?: {
         limit?: number;
     }): Promise<CategoryListResult>;
+    /**
+     * Follow Ontivi's gate playlist redirect to an absolute playable m3u8.
+     * Gate URLs look like `https://s.ontivi.net/{id}/index.m3u8?k=…` and 302 to
+     * `/{22-char-token}/{id}/{epoch}/index.m3u8` (relative Location). Returning the
+     * gate URL breaks some players that mishandle relative redirects.
+     */
+    private resolvePlayableHls;
     private loadPlayerConfig;
 }
 //# sourceMappingURL=ontivi.d.ts.map
