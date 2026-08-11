@@ -10,8 +10,11 @@ export {
   clearMakoDiscoveryCache,
   collectLiveTvEntries,
   discoverMakoChannelsFromSite,
+  filterDeadFallbackChannels,
   getMakoCatalog,
+  isMakoStreamPlayable,
   mergeMakoCatalog,
+  selectMakoCatalog,
   stableIdForSiteChannel,
 } from "./discover";
 export { fetchMakoTicket, buildAuthorizedMakoUrl } from "./token";

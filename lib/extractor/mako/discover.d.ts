@@ -8,7 +8,7 @@ export interface MakoSiteListingEntry {
 interface CachedCatalog {
     at: number;
     channels: MakoChannel[];
-    source: "site+fallback" | "fallback";
+    source: "site" | "fallback";
 }
 /** Collect unique `/mako-vod-live-tv/...` cards from CMS JSON. */
 export declare function collectLiveTvEntries(root: unknown): MakoSiteListingEntry[];
@@ -21,11 +21,20 @@ export declare function groupForChannel(id: string, streamUrl: string): MakoChan
 /** Discover live/linear channels from mako.co.il VOD CMS (no MediaBox). */
 export declare function discoverMakoChannelsFromSite(request: RequestClient): Promise<MakoChannel[]>;
 /**
- * Site catalog first; MediaBox / built-in list fills any missing ids
- * (e.g. dancing, ninja, alternate k12 path variants).
+ * Prefer site discovery exclusively when it returns any channels.
+ * MediaBox / built-in list is used only when site discovery fails or is empty.
  */
+export declare function selectMakoCatalog(siteChannels: MakoChannel[], fallback?: MakoChannel[]): {
+    channels: MakoChannel[];
+    source: "site" | "fallback";
+};
+/** @deprecated Use {@link selectMakoCatalog}. Kept for callers expecting a flat list. */
 export declare function mergeMakoCatalog(siteChannels: MakoChannel[], fallback?: MakoChannel[]): MakoChannel[];
-/** Cached merge of site discovery + MediaBox fallback. */
+/** True when a tokenized Mako HLS playlist is reachable. */
+export declare function isMakoStreamPlayable(request: RequestClient, streamUrl: string, tokenUrl?: string): Promise<boolean>;
+/** Drop catalog entries whose CDN paths are dead (used for MediaBox fallback only). */
+export declare function filterDeadFallbackChannels(request: RequestClient, channels: MakoChannel[]): Promise<MakoChannel[]>;
+/** Cached site catalog, or MediaBox fallback when discovery fails. */
 export declare function getMakoCatalog(request: RequestClient, options?: {
     forceRefresh?: boolean;
     group?: MakoChannel["group"];

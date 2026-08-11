@@ -484,7 +484,7 @@ export const URL_USAGE: Record<string, UrlUsageGuide> = {
       "https://mako-streaming.akamaized.net/direct/hls/live/2035340/ch24live/index.m3u8",
     ],
     notes:
-      "Mints an Akamai `hdnea` ticket via mass.mako.co.il entitlements, then returns a short-lived playable HLS URL. Channel IDs come from mako.co.il live-TV discovery with a MediaBox fallback — list with `mako:channels`.",
+      "Channel IDs are discovered from mako.co.il; the MediaBox catalog is used only if site discovery fails. List with `mako:channels`.",
   },
 
   // Batch 6 — hosts / short clips
@@ -608,7 +608,7 @@ export const LIST_URL_USAGE: Record<string, UrlUsageGuide> = {
     categoriesDefaultUrl: "mako:channels",
     categoriesIndexUrl: "mako:channels",
     notes:
-      "Discovers live/linear channels from mako.co.il (`/mako-vod` live rail), merging MediaBox fallbacks for extras the site omits. Returns `mako:{id}` entries (e.g. `mako:k12`).",
+      "Discovers live/linear channels from mako.co.il (`/mako-vod` live rail). MediaBox fallback is used only when site discovery fails.",
   },
   "kaltura-ott": {
     usage:

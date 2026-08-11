@@ -4,8 +4,6 @@ import type { ListVideosOptions, VideoListResult } from "../../core/video-list";
 import type { Format, InfoDict } from "../../core/types";
 import { baseInfo, hlsFormat } from "../_shared/helpers";
 import {
-  findMakoChannel,
-  listMakoChannels,
   makoChannelPageUrl,
   makoListingUrl,
   type MakoChannel,
@@ -34,7 +32,7 @@ export class MakoIE extends InfoExtractor {
       validUrl: String(this._VALID_URL),
       options: [],
       notes:
-        "Use `mako:channels` to list IDs (discovered from mako.co.il, MediaBox fallback), or `mako:k12` / a `mako-streaming.akamaized.net` m3u8 URL to extract. Streams require a short-lived Akamai `hdnea` ticket.",
+        "Use `mako:channels` to list IDs discovered from mako.co.il (MediaBox catalog only if site discovery fails), or `mako:k12` / a `mako-streaming.akamaized.net` m3u8 URL to extract. Streams require a short-lived Akamai `hdnea` ticket.",
       listSupported: true,
     };
   }
@@ -58,6 +56,13 @@ export class MakoIE extends InfoExtractor {
     const tokenLp = resolved.tokenUrl || resolved.streamUrl;
     const ticket = await fetchMakoTicket(this.request, tokenLp);
     const playUrl = buildAuthorizedMakoUrl(resolved.streamUrl, ticket);
+
+    const probe = await this.request.request(playUrl, { headers: MAKO_REQUEST_HEADERS });
+    if (probe.statusCode !== 200 || !/#EXTM3U/i.test(String(probe.body || ""))) {
+      throw new Error(
+        `mako: stream unavailable for "${resolved.id}" (HTTP ${probe.statusCode}) — CDN path may be retired`,
+      );
+    }
 
     const format: Format = hlsFormat(playUrl, "hls");
     format.http_headers = { ...MAKO_REQUEST_HEADERS };
@@ -91,8 +96,8 @@ export class MakoIE extends InfoExtractor {
       playlist_id: group || "all",
       playlist_title: group
         ? `Mako ${group}`
-        : source === "site+fallback"
-          ? "Mako channels (site + fallback)"
+        : source === "site"
+          ? "Mako channels (site)"
           : "Mako channels (fallback)",
       page: 1,
       entries: channels.map(ch => ({
@@ -160,8 +165,7 @@ export class MakoIE extends InfoExtractor {
     if (!id) throw new Error(`mako: invalid URL ${url}`);
 
     const { channels } = await getMakoCatalog(this.request);
-    const channel =
-      findInMakoCatalog(channels, id) || findMakoChannel(id) || listMakoChannels().find(c => c.id === id);
+    const channel = findInMakoCatalog(channels, id);
     if (!channel) throw new Error(`mako: unknown channel id "${id}" (try mako:channels)`);
     return {
       id: channel.id,

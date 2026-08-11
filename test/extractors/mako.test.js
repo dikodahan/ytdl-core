@@ -9,6 +9,7 @@ const {
   clearMakoDiscoveryCache,
   collectLiveTvEntries,
   mergeMakoCatalog,
+  selectMakoCatalog,
   stableIdForSiteChannel,
 } = require("../../lib/extractor/mako");
 const { MakoIE } = require("../../lib/extractor/mako");
@@ -56,8 +57,8 @@ describe("mako catalog", () => {
     );
   });
 
-  it("merges site discovery over MediaBox fallback", () => {
-    const merged = mergeMakoCatalog(
+  it("uses site catalog alone when discovery succeeds", () => {
+    const selected = selectMakoCatalog(
       [
         {
           id: "k12",
@@ -69,11 +70,23 @@ describe("mako catalog", () => {
       ],
       MAKO_CHANNELS,
     );
-    const k12 = merged.find(c => c.id === "k12");
-    assert.equal(k12.name, "Site K12");
-    assert.match(k12.streamUrl, /k12rh-dvr/);
-    assert.ok(merged.find(c => c.id === "dancing"), "fallback extras retained");
-    assert.ok(merged.length >= MAKO_CHANNELS.length);
+    assert.equal(selected.source, "site");
+    assert.equal(selected.channels.length, 1);
+    assert.equal(selected.channels[0].name, "Site K12");
+    assert.equal(
+      selected.channels.some(c => c.id === "ninja"),
+      false,
+      "fallback extras must not mix into a successful site catalog",
+    );
+  });
+
+  it("uses MediaBox fallback only when site discovery is empty", () => {
+    const selected = selectMakoCatalog([], MAKO_CHANNELS);
+    assert.equal(selected.source, "fallback");
+    assert.ok(selected.channels.length >= 8);
+    assert.ok(selected.channels.find(c => c.id === "ninja"));
+    // mergeMakoCatalog mirrors select().channels
+    assert.equal(mergeMakoCatalog([], MAKO_CHANNELS).length, selected.channels.length);
   });
 
   it("collects live-tv rail entries from NEXT_DATA-shaped JSON", () => {
@@ -123,8 +136,8 @@ describe("mako suitable / listUrlSupported", () => {
   });
 });
 
-describe("mako live", { timeout: 90_000 }, () => {
-  it("lists channel IDs from site discovery with MediaBox fallback", async () => {
+describe("mako live", { timeout: 120_000 }, () => {
+  it("lists channel IDs from site discovery only", async () => {
     clearMakoDiscoveryCache();
     const result = await listVideos("mako:channels", { service: "mako" });
     assert.equal(result.extractor, "mako");
@@ -132,11 +145,10 @@ describe("mako live", { timeout: 90_000 }, () => {
     const k12 = result.entries.find(e => e.id === "k12");
     assert.ok(k12);
     assert.equal(k12.url, "mako:k12");
-    // Fallback-only extras should still appear when site rail omits them.
-    assert.ok(result.entries.find(e => e.id === "dancing"));
-    assert.ok(
-      result.playlist_title.includes("site") || result.playlist_title.includes("fallback"),
-    );
+    // Site-only: MediaBox extras omitted when discovery succeeds.
+    assert.equal(result.entries.some(e => e.id === "ninja"), false);
+    assert.equal(result.entries.some(e => e.id === "dancing"), false);
+    assert.match(result.playlist_title, /site|fallback/);
   });
 
   it("extracts tokenized HLS for Keshet 12", async () => {

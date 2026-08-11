@@ -3,7 +3,7 @@ import {
   MAKO_CHANNELS,
   type MakoChannel,
 } from "./channels";
-import { MAKO_REQUEST_HEADERS } from "./token";
+import { buildAuthorizedMakoUrl, fetchMakoTicket, MAKO_REQUEST_HEADERS } from "./token";
 
 const MAKO_VOD_URL = "https://www.mako.co.il/mako-vod";
 const MAKO_ORIGIN = "https://www.mako.co.il";
@@ -56,7 +56,7 @@ export interface MakoSiteListingEntry {
 interface CachedCatalog {
   at: number;
   channels: MakoChannel[];
-  source: "site+fallback" | "fallback";
+  source: "site" | "fallback";
 }
 
 let cachedCatalog: CachedCatalog | null = null;
@@ -334,23 +334,58 @@ export async function discoverMakoChannelsFromSite(
 }
 
 /**
- * Site catalog first; MediaBox / built-in list fills any missing ids
- * (e.g. dancing, ninja, alternate k12 path variants).
+ * Prefer site discovery exclusively when it returns any channels.
+ * MediaBox / built-in list is used only when site discovery fails or is empty.
  */
+export function selectMakoCatalog(
+  siteChannels: MakoChannel[],
+  fallback: MakoChannel[] = MAKO_CHANNELS,
+): { channels: MakoChannel[]; source: "site" | "fallback" } {
+  if (siteChannels.length > 0) {
+    return { channels: [...siteChannels], source: "site" };
+  }
+  return { channels: [...fallback], source: "fallback" };
+}
+
+/** @deprecated Use {@link selectMakoCatalog}. Kept for callers expecting a flat list. */
 export function mergeMakoCatalog(
   siteChannels: MakoChannel[],
   fallback: MakoChannel[] = MAKO_CHANNELS,
 ): MakoChannel[] {
-  const byId = new Map<string, MakoChannel>();
-  for (const ch of siteChannels) byId.set(ch.id.toLowerCase(), ch);
-  for (const ch of fallback) {
-    const key = ch.id.toLowerCase();
-    if (!byId.has(key)) byId.set(key, ch);
-  }
-  return [...byId.values()];
+  return selectMakoCatalog(siteChannels, fallback).channels;
 }
 
-/** Cached merge of site discovery + MediaBox fallback. */
+/** True when a tokenized Mako HLS playlist is reachable. */
+export async function isMakoStreamPlayable(
+  request: RequestClient,
+  streamUrl: string,
+  tokenUrl?: string,
+): Promise<boolean> {
+  try {
+    const ticket = await fetchMakoTicket(request, tokenUrl || streamUrl);
+    const playUrl = buildAuthorizedMakoUrl(streamUrl, ticket);
+    const res = await request.request(playUrl, { headers: MAKO_REQUEST_HEADERS });
+    return res.statusCode === 200 && /#EXTM3U/i.test(String(res.body || ""));
+  } catch {
+    return false;
+  }
+}
+
+/** Drop catalog entries whose CDN paths are dead (used for MediaBox fallback only). */
+export async function filterDeadFallbackChannels(
+  request: RequestClient,
+  channels: MakoChannel[],
+): Promise<MakoChannel[]> {
+  const checks = await Promise.all(
+    channels.map(async ch => {
+      const ok = await isMakoStreamPlayable(request, ch.streamUrl, ch.tokenUrl);
+      return ok ? ch : null;
+    }),
+  );
+  return checks.filter((c): c is MakoChannel => !!c);
+}
+
+/** Cached site catalog, or MediaBox fallback when discovery fails. */
 export async function getMakoCatalog(
   request: RequestClient,
   options: { forceRefresh?: boolean; group?: MakoChannel["group"] } = {},
@@ -367,18 +402,27 @@ export async function getMakoCatalog(
   }
 
   let site: MakoChannel[] = [];
-  let source: CachedCatalog["source"] = "fallback";
   try {
     site = await discoverMakoChannelsFromSite(request);
-    if (site.length) source = "site+fallback";
   } catch {
     site = [];
   }
 
-  const merged = mergeMakoCatalog(site, MAKO_CHANNELS);
-  cachedCatalog = { at: Date.now(), channels: merged, source };
-  const channels = options.group ? merged.filter(c => c.group === options.group) : merged;
-  return { channels, source };
+  const selected = selectMakoCatalog(site, MAKO_CHANNELS);
+  const channelsAlive =
+    selected.source === "fallback"
+      ? await filterDeadFallbackChannels(request, selected.channels)
+      : selected.channels;
+
+  cachedCatalog = {
+    at: Date.now(),
+    channels: channelsAlive,
+    source: selected.source,
+  };
+  const channels = options.group
+    ? channelsAlive.filter(c => c.group === options.group)
+    : channelsAlive;
+  return { channels, source: selected.source };
 }
 
 export function findInMakoCatalog(

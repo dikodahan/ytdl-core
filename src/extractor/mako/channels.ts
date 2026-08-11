@@ -21,8 +21,7 @@ export interface MakoChannel {
 
 /**
  * Built-in / MediaBox fallback catalog (MAKO / mako-streaming + share-next paths).
- * Live listing prefers site discovery from mako.co.il and merges these for any
- * ids the site rail does not expose (e.g. dancing, ninja, kohav, hatuna).
+ * Used only when live discovery from mako.co.il fails or returns no channels.
  */
 export const MAKO_CHANNELS: MakoChannel[] = [
   {
@@ -115,14 +114,7 @@ export const MAKO_CHANNELS: MakoChannel[] = [
     thumbnail: "https://img.mako.co.il/2026/06/15/LinearChannel_food_e.jpg",
     group: "free",
   },
-  {
-    id: "dancing",
-    name: "רוקדים עם כוכבים",
-    label: "Dancing with the Stars",
-    streamUrl:
-      "https://mako-streaming.akamaized.net/free/hls/live/2111419/dancing_with_stars/index.m3u8",
-    group: "extra",
-  },
+  // Note: former `dancing` / dancing_with_stars linear feed is gone from the CDN (404).
   {
     id: "ninja",
     name: "נינג'ה ישראל",

@@ -19,8 +19,7 @@ export interface MakoChannel {
 }
 /**
  * Built-in / MediaBox fallback catalog (MAKO / mako-streaming + share-next paths).
- * Live listing prefers site discovery from mako.co.il and merges these for any
- * ids the site rail does not expose (e.g. dancing, ninja, kohav, hatuna).
+ * Used only when live discovery from mako.co.il fails or returns no channels.
  */
 export declare const MAKO_CHANNELS: MakoChannel[];
 export declare function findMakoChannel(id: string): MakoChannel | undefined;
