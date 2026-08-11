@@ -474,6 +474,18 @@ export const URL_USAGE: Record<string, UrlUsageGuide> = {
     notes:
       "Decodes Playerjs `file` + `kodk`/`kos` into an HLS URL on `s.ontivi.net`. Use listing URLs (`/tv3`) with list API to browse channels.",
   },
+  mako: {
+    usage:
+      "Paste a Mako pseudo-URL (`mako:k12`) or a `mako-streaming.akamaized.net` HLS playlist URL.",
+    examples: [
+      "mako:k12",
+      "mako:ch24",
+      "mako:eretz",
+      "https://mako-streaming.akamaized.net/direct/hls/live/2035340/ch24live/index.m3u8",
+    ],
+    notes:
+      "Mints an Akamai `hdnea` ticket via mass.mako.co.il entitlements, then returns a short-lived playable HLS URL. Channel IDs come from mako.co.il live-TV discovery with a MediaBox fallback — list with `mako:channels`.",
+  },
 
   // Batch 6 — hosts / short clips
   googledrive: {
@@ -588,6 +600,15 @@ export const LIST_URL_USAGE: Record<string, UrlUsageGuide> = {
     categoriesIndexUrl: "https://ip.ontivi.net/tv3",
     notes:
       "Channel pages expose Playerjs `kodk`/`kos`/`file`; the extractor decodes the HLS URL on `s.ontivi.net`. Listing scrapes the channel grid from `/chanel?catgl=1`.",
+  },
+  mako: {
+    usage: "Paste `mako:channels` or `mako:channels:{live|free|extra}` to list channel IDs.",
+    examples: ["mako:channels", "mako:channels:live", "mako:channels:free"],
+    defaultUrl: "mako:channels",
+    categoriesDefaultUrl: "mako:channels",
+    categoriesIndexUrl: "mako:channels",
+    notes:
+      "Discovers live/linear channels from mako.co.il (`/mako-vod` live rail), merging MediaBox fallbacks for extras the site omits. Returns `mako:{id}` entries (e.g. `mako:k12`).",
   },
   "kaltura-ott": {
     usage:

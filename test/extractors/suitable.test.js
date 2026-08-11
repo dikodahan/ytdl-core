@@ -93,6 +93,7 @@ const CASES = [
   ["xnxx", "https://www.xnxx.com/video-55awb78/skyrim_test_video"],
   ["famelack", "https://famelack.com/tv/us/BTtTvg520N96K8"],
   ["ontivi", "https://ip.ontivi.net/024721-9-kanal-izrail.html"],
+  ["mako", "mako:k12"],
   // Batch 6
   ["googledrive", "https://drive.google.com/file/d/0ByeS4oOUV-49Zzh4R1J6R09zazQ/view"],
   ["dropbox", "https://www.dropbox.com/s/nelirfsxnmcfbfh/video.mp4?dl=0"],

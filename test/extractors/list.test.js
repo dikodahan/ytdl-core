@@ -18,12 +18,13 @@ const LIST_CASES = [
   ["xnxx", "https://www.xnxx.com/search/amateur/"],
   ["famelack", "https://famelack.com/tv/us"],
   ["ontivi", "https://ip.ontivi.net/tv3"],
+  ["mako", "mako:channels"],
 ];
 
 describe("video list API", () => {
   it("registers list-capable extractors", () => {
     const names = listListCapableExtractors().map(ie => ie.IE_NAME).sort();
-    assert.deepEqual(names, ["famelack", "kaltura-ott", "ontivi", "xnxx", "youjizz", "youporn"]);
+    assert.deepEqual(names, ["famelack", "kaltura-ott", "mako", "ontivi", "xnxx", "youjizz", "youporn"]);
   });
 
   for (const [name, url] of LIST_CASES) {
@@ -55,7 +56,7 @@ describe("video list API", () => {
       assert.equal(result.extractor, service);
       assert.ok(result.entries.length >= 1, "expected at least one entry");
       for (const entry of result.entries) {
-        assert.match(entry.url, /^https?:\/\//);
+        assert.match(entry.url, /^(?:https?:\/\/|mako:|kaltura-ott:)/);
         if (service === "youporn") {
           assert.match(entry.id, /^\d+$/);
           assert.match(entry.url, /youporn\.com\/watch\//);
@@ -76,6 +77,10 @@ describe("video list API", () => {
         if (service === "ontivi") {
           assert.match(entry.id, /./);
           assert.match(entry.url, /ontivi\.net\/.+\.html/);
+        }
+        if (service === "mako") {
+          assert.match(entry.id, /^[a-z0-9-]+$/);
+          assert.match(entry.url, /^mako:[a-z0-9-]+$/);
         }
       }
     });

@@ -79,6 +79,7 @@ import { YouJizzIE } from "./youjizz";
 import { XnxxIE } from "./xnxx";
 import { FamelackIE } from "./famelack";
 import { OntiviIE } from "./ontivi";
+import { MakoIE } from "./mako";
 
 // Batch 6 — hosts / short clips
 import { GoogleDriveIE } from "./googledrive";
@@ -179,6 +180,7 @@ export function registerBuiltInExtractors(): void {
   registerExtractor(XnxxIE);
   registerExtractor(FamelackIE);
   registerExtractor(OntiviIE);
+  registerExtractor(MakoIE);
 
   // Batch 6 — hosts / short clips
   registerExtractor(GoogleDriveIE);
@@ -275,6 +277,7 @@ export {
   XnxxIE,
   FamelackIE,
   OntiviIE,
+  MakoIE,
 };
 export {
   GoogleDriveIE,
