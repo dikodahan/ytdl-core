@@ -7,7 +7,7 @@ import {
   parseXvideosEntries,
   parseXvideosNextPage,
 } from "../_shared/page-links";
-import { baseInfo, hlsFormat, progressiveFormat } from "../_shared/helpers";
+import { baseInfo, expandHlsMasterFormats, hlsFormat, progressiveFormat } from "../_shared/helpers";
 
 /** Watch / embed URLs (`/video.{id}/…`, legacy `/video{id}/…`, `/embedframe/{id}`). */
 const VALID_URL =
@@ -69,7 +69,10 @@ function parseFormats(webpage: string): Format[] {
     seen.add(url);
 
     if (/\.m3u8($|\?)/i.test(url)) {
-      formats.push(hlsFormat(url));
+      formats.push({
+        ...hlsFormat(url),
+        http_headers: { ...DEFAULT_HEADERS },
+      });
       continue;
     }
 
@@ -78,6 +81,8 @@ function parseFormats(webpage: string): Format[] {
       progressiveFormat(url, {
         format_id: formatId,
         height: formatId === "high" ? 360 : formatId === "low" ? 240 : null,
+        qualityLabel: formatId === "high" ? "360p" : formatId === "low" ? "240p" : undefined,
+        http_headers: { ...DEFAULT_HEADERS },
       }),
     );
   }
@@ -144,7 +149,10 @@ export class XVideosIE extends InfoExtractor {
     if (!videoId) throw new Error(`Could not extract id from URL: ${url}`);
 
     const webpage = await this.request.text(url, { headers: DEFAULT_HEADERS });
-    const formats = parseFormats(webpage);
+    let formats = parseFormats(webpage);
+    formats = await expandHlsMasterFormats(formats, (masterUrl) =>
+      this.request.text(masterUrl, { headers: DEFAULT_HEADERS }),
+    );
     if (!formats.length) {
       throw new Error(`xvideos: no playable formats for ${videoId}`);
     }

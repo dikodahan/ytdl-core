@@ -1,4 +1,4 @@
-import { registerExtractor } from "../../core/registry";
+import { findExtractorByName, registerExtractor } from "../../core/registry";
 import { createGeneratedExtractor, type GeneratedCatalogEntry } from "./factory";
 import { GenericIE } from "../generic/generic";
 import catalogJson from "./catalog.json";
@@ -11,6 +11,9 @@ export function registerGeneratedExtractors(): void {
 
   const extractors = (catalogJson as { extractors?: GeneratedCatalogEntry[] }).extractors || [];
   for (const entry of extractors) {
+    const name = entry.ieName || entry.id;
+    // Hand-ported extractors are registered first — skip generated stubs with the same name.
+    if (name && findExtractorByName(name)) continue;
     try {
       registerExtractor(createGeneratedExtractor(entry));
     } catch (err) {

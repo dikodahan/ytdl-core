@@ -8,8 +8,8 @@
       "YoutubeIE"
     ]
   },
-  "handPortedCount": 74,
-  "generatedCount": 847,
+  "handPortedCount": 75,
+  "generatedCount": 846,
   "batches": [
     {
       "id": 0,
@@ -7850,11 +7850,10 @@
         },
         {
           "id": "xvideos",
-          "status": "partial",
+          "status": "ready",
           "ies": [
             "XVideosIE"
-          ],
-          "source": "generated"
+          ]
         },
         {
           "id": "xxxymovies",

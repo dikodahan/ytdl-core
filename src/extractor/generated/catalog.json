@@ -12626,25 +12626,6 @@
       "source": "generated"
     },
     {
-      "id": "xvideos",
-      "ieClass": "XVideosIE",
-      "ieName": "xvideos",
-      "description": "xvideos (auto-generated webpage extract)",
-      "patterns": [
-        "\n                    https?://\n                        (?:\n                            (?:[^/]+\\.)?xvideos2?\\.com/video\\.?|\n                            (?:www\\.)?xvideos\\.es/video\\.?|\n                            (?:www|flashservice)\\.xvideos\\.com/embedframe/|\n                            static-hw\\.xvideos\\.com/swf/xv-player\\.swf\\?.*?\\bid_video=\n                        )\n                        (?<id>[0-9a-z]+)",
-        "https?://(?<domain>(?:[^/?#]+\\.)?xvideos2?\\.com)/(?:profiles/|amateur-channels/)?[^/?#]+#quickies/a/(?<id>\\w+)"
-      ],
-      "hosts": [
-        "xvideos.com",
-        "www.xvideos.com",
-        "flashservice.xvideos.com",
-        "static-hw.xvideos.com",
-        "xvideos.es"
-      ],
-      "module": "xvideos",
-      "source": "generated"
-    },
-    {
       "id": "xxxymovies",
       "ieClass": "XXXYMoviesIE",
       "ieName": "xxxymovies",

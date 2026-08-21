@@ -28,6 +28,113 @@ export function hlsFormat(url: string, formatId = "hls"): Format {
   };
 }
 
+export type HlsMasterVariant = {
+  height: number;
+  width: number;
+  bandwidth: number;
+  name: string;
+  playlistUrl: string;
+};
+
+/** Parse `#EXT-X-STREAM-INF` variants from an HLS master playlist body. */
+export function parseHlsMasterPlaylist(
+  masterUrl: string,
+  body: string,
+): HlsMasterVariant[] {
+  const variants: HlsMasterVariant[] = [];
+  const base = new URL(masterUrl);
+  const lines = body.split(/\r?\n/);
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]?.trim() || "";
+    if (!line.startsWith("#EXT-X-STREAM-INF:")) continue;
+
+    const res = line.match(/RESOLUTION=(\d+)x(\d+)/i);
+    const name = line.match(/NAME="([^"]+)"/i)?.[1];
+    const bw = line.match(/BANDWIDTH=(\d+)/i)?.[1];
+    const playlist = lines[i + 1]?.trim();
+    if (!playlist || playlist.startsWith("#")) continue;
+
+    variants.push({
+      width: res ? Number(res[1]) : 0,
+      height: res ? Number(res[2]) : 0,
+      bandwidth: bw ? Number(bw) : 0,
+      name: name || (res ? `${res[2]}p` : "hls"),
+      playlistUrl: new URL(playlist, base).toString(),
+    });
+  }
+
+  return variants;
+}
+
+/**
+ * Expand master `m3u8` formats into per-variant HLS entries (with height / qualityLabel).
+ * Leaves progressive formats untouched. Falls back to the original master when fetch fails.
+ */
+export async function expandHlsMasterFormats(
+  formats: Format[],
+  fetchText: (url: string) => Promise<string>,
+): Promise<Format[]> {
+  const out: Format[] = [];
+  const seen = new Set<string>();
+
+  for (const format of formats) {
+    const url = format.url || format.manifest_url;
+    const isMaster =
+      !!url &&
+      (format.isHLS || /\.m3u8($|\?)/i.test(url)) &&
+      !/hls-\d+p/i.test(String(format.format_id || ""));
+
+    if (!isMaster || !url) {
+      if (url && !seen.has(url)) {
+        seen.add(url);
+        out.push(format);
+      } else if (!url) {
+        out.push(format);
+      }
+      continue;
+    }
+
+    try {
+      const body = await fetchText(url);
+      const variants = parseHlsMasterPlaylist(url, body);
+      if (!variants.length) {
+        if (!seen.has(url)) {
+          seen.add(url);
+          out.push(format);
+        }
+        continue;
+      }
+      for (const variant of variants) {
+        if (seen.has(variant.playlistUrl)) continue;
+        seen.add(variant.playlistUrl);
+        out.push({
+          ...hlsFormat(
+            variant.playlistUrl,
+            `hls-${variant.name.replace(/\s+/g, "_").toLowerCase()}`,
+          ),
+          height: variant.height || null,
+          width: variant.width || null,
+          resolution:
+            variant.width && variant.height
+              ? `${variant.width}x${variant.height}`
+              : undefined,
+          qualityLabel: variant.name,
+          tbr: variant.bandwidth ? Math.round(variant.bandwidth / 1000) : null,
+          http_headers: format.http_headers,
+        });
+      }
+    } catch {
+      if (!seen.has(url)) {
+        seen.add(url);
+        out.push(format);
+      }
+    }
+  }
+
+  return out;
+}
+
 export function dashFormat(url: string, formatId = "dash"): Format {
   return {
     format_id: formatId,

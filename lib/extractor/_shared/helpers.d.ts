@@ -1,6 +1,20 @@
 import type { Format, InfoDict } from "../../core/types";
 export declare function matchId(url: string, re: RegExp, group?: string | number): string;
 export declare function hlsFormat(url: string, formatId?: string): Format;
+export type HlsMasterVariant = {
+    height: number;
+    width: number;
+    bandwidth: number;
+    name: string;
+    playlistUrl: string;
+};
+/** Parse `#EXT-X-STREAM-INF` variants from an HLS master playlist body. */
+export declare function parseHlsMasterPlaylist(masterUrl: string, body: string): HlsMasterVariant[];
+/**
+ * Expand master `m3u8` formats into per-variant HLS entries (with height / qualityLabel).
+ * Leaves progressive formats untouched. Falls back to the original master when fetch fails.
+ */
+export declare function expandHlsMasterFormats(formats: Format[], fetchText: (url: string) => Promise<string>): Promise<Format[]>;
 export declare function dashFormat(url: string, formatId?: string): Format;
 export declare function progressiveFormat(url: string, opts?: Partial<Format> & {
     format_id?: string;
