@@ -455,6 +455,15 @@ export const URL_USAGE: Record<string, UrlUsageGuide> = {
     ],
     notes: "Adult content (18+). Use `POST /api/v1/list` for search/category id lists.",
   },
+  xvideos: {
+    usage:
+      "Paste an XVideos watch URL (`xvideos.com/video.{id}/…` or `/embedframe/{id}`).",
+    examples: [
+      "https://www.xvideos.com/video.oopthhhf76d/night_amateur_fuck",
+      "https://www.xvideos.com/c/Amateur-65",
+    ],
+    notes: "Adult content (18+). Use `POST /api/v1/list` for category id lists.",
+  },
   famelack: {
     usage:
       "Paste a Famelack live TV channel URL (`famelack.com/tv/{country|category}/{nanoid}`).",
@@ -573,6 +582,20 @@ export const LIST_URL_USAGE: Record<string, UrlUsageGuide> = {
     categoriesIndexUrl: "https://www.xnxx.com/tags",
     notes:
       "Returns alphanumeric video ids, optional listing thumbnails, and `https://www.xnxx.com/video-{id}/…` links. Pagination uses trailing `/0`, `/1`, … (page 1 has no suffix).",
+  },
+  xvideos: {
+    usage:
+      "Paste an XVideos category URL (`/c/{Name}-{id}`) or the homepage to list video ids.",
+    examples: [
+      "https://www.xvideos.com/c/Amateur-65",
+      "https://www.xvideos.com/c/Asian_Woman-32",
+      "https://www.xvideos.com/",
+    ],
+    defaultUrl: "https://www.xvideos.com/c/Amateur-65",
+    categoriesDefaultUrl: "https://www.xvideos.com/",
+    categoriesIndexUrl: "https://www.xvideos.com/",
+    notes:
+      "Returns alphanumeric video ids (`data-eid`) and `https://www.xvideos.com/video.{id}/…` links. Category pagination uses `/c/{Name}-{id}/{n}` where page 2 is `/1`. Discover categories from the homepage Categories menu.",
   },
   famelack: {
     usage:

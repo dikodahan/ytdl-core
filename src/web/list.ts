@@ -89,7 +89,7 @@ export async function runList(parsed: ListRequest) {
         status: 400 as const,
         body: {
           error: "No list-capable extractor for this URL",
-          hint: "Use a browse/category listing URL and/or force service to youporn or youjizz.",
+          hint: "Use a browse/category listing URL and/or force service to youporn, youjizz, xnxx, or xvideos.",
         },
       };
     }

@@ -409,3 +409,95 @@ export function parseXnxxCategories(html: string, pageUrl: string): CategoryList
 
   return [...byId.values()];
 }
+
+/** Parse XVideos category menu links (`/c/Amateur-65`). */
+export function parseXvideosCategories(html: string, pageUrl: string): CategoryListEntry[] {
+  const byId = new Map<string, CategoryListEntry>();
+
+  for (const m of html.matchAll(
+    /<a\b[^>]*\bhref=["'](?<href>\/c\/(?<slug>[A-Za-z0-9_]+)-(?<num>\d+))\/?["'][^>]*>\s*(?<title>[^<]+)/gi,
+  )) {
+    const href = m.groups?.href;
+    const num = m.groups?.num;
+    const slug = m.groups?.slug;
+    if (!href || !num || !slug) continue;
+
+    const rawTitle = (m.groups?.title || "").trim();
+    const title = decodeHtmlEntities(rawTitle || slug.replace(/_/g, " "));
+    const url = absPageUrl(href, pageUrl);
+    const existing = byId.get(num);
+    if (existing) {
+      // Prefer human labels without underscores when both appear.
+      const prev = existing.title || "";
+      if (!/_/.test(prev) || /_/.test(title)) continue;
+    }
+    byId.set(num, {
+      id: num,
+      title,
+      url,
+      display_id: `${slug}-${num}`,
+    });
+  }
+
+  return [...byId.values()];
+}
+
+/** Parse video tiles from an XVideos listing / category page. */
+export function parseXvideosEntries(html: string, pageUrl: string): VideoListEntry[] {
+  const byId = new Map<string, VideoListEntry>();
+
+  for (const block of html.split(
+    /(?=<div[^>]*(?:\bid=["']video_[a-z0-9]+["']|[^>]*\bdata-eid=["'][a-z0-9]+["']))/i,
+  )) {
+    const id =
+      block.match(/\bdata-eid=["'](?<id>[a-z0-9]+)["']/i)?.groups?.id ||
+      block.match(/\bid=["']video_(?<id>[a-z0-9]+)["']/i)?.groups?.id;
+    if (!id) continue;
+
+    const href =
+      block.match(/\bhref=["'](?<href>\/video\.[a-z0-9]+\/[^"']*)["']/i)?.groups?.href ||
+      block.match(/\bhref=["'](?<href>\/video\d+\/[^"']*)["']/i)?.groups?.href;
+    if (!href) continue;
+
+    const title =
+      block.match(/<p\s+class=["']title["'][\s\S]*?\btitle=["'](?<title>[^"']+)["']/i)?.groups
+        ?.title || block.match(/\btitle=["'](?<title>[^"']+)["']/i)?.groups?.title;
+
+    byId.set(id, {
+      id,
+      url: absPageUrl(href, pageUrl),
+      title: title ? decodeHtmlEntities(title) : null,
+      thumbnail: pickListingThumbnail(block),
+    });
+  }
+
+  if (!byId.size) {
+    for (const m of html.matchAll(
+      /<a\b[^>]*\bhref=["'](?<href>\/video\.(?<id>[a-z0-9]+)\/[^"']*)["'][^>]*\btitle=["'](?<title>[^"']+)["']/gi,
+    )) {
+      const id = m.groups?.id;
+      const href = m.groups?.href;
+      if (!id || !href || byId.has(id)) continue;
+      byId.set(id, {
+        id,
+        url: absPageUrl(href, pageUrl),
+        title: decodeHtmlEntities(m.groups?.title || "") || null,
+      });
+    }
+  }
+
+  return dedupeEntries([...byId.values()]);
+}
+
+export function parseXvideosNextPage(html: string, pageUrl: string): string | null {
+  const m =
+    html.match(
+      /<a\b[^>]*class=["'][^"']*next-page[^"']*["'][^>]*\bhref=["'](?<href>[^"'#]+)["']/i,
+    ) ||
+    html.match(
+      /<a\b[^>]*\bhref=["'](?<href>[^"'#]+)["'][^>]*class=["'][^"']*next-page[^"']*["']/i,
+    );
+  const href = m?.groups?.href?.trim();
+  if (!href || href === "#") return null;
+  return absPageUrl(href, pageUrl);
+}

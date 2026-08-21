@@ -16,6 +16,7 @@ const LIST_CASES = [
   ["youporn-category", "https://www.youporn.com/category/amateur/"],
   ["youjizz", "https://www.youjizz.com/categories/teen-1.html"],
   ["xnxx", "https://www.xnxx.com/search/amateur/"],
+  ["xvideos", "https://www.xvideos.com/c/Amateur-65"],
   ["famelack", "https://famelack.com/tv/us"],
   ["ontivi", "https://ip.ontivi.net/tv3"],
   ["mako", "mako:channels"],
@@ -24,7 +25,16 @@ const LIST_CASES = [
 describe("video list API", () => {
   it("registers list-capable extractors", () => {
     const names = listListCapableExtractors().map(ie => ie.IE_NAME).sort();
-    assert.deepEqual(names, ["famelack", "kaltura-ott", "mako", "ontivi", "xnxx", "youjizz", "youporn"]);
+    assert.deepEqual(names, [
+      "famelack",
+      "kaltura-ott",
+      "mako",
+      "ontivi",
+      "xnxx",
+      "xvideos",
+      "youjizz",
+      "youporn",
+    ]);
   });
 
   for (const [name, url] of LIST_CASES) {
@@ -68,6 +78,11 @@ describe("video list API", () => {
         if (service === "xnxx") {
           assert.match(entry.id, /^[a-z0-9]+$/i);
           assert.match(entry.url, /xnxx\.com\/video-/);
+          if (entry.thumbnail) assert.match(entry.thumbnail, /^https?:\/\//);
+        }
+        if (service === "xvideos") {
+          assert.match(entry.id, /^[a-z0-9]+$/i);
+          assert.match(entry.url, /xvideos\.com\/video\./);
           if (entry.thumbnail) assert.match(entry.thumbnail, /^https?:\/\//);
         }
         if (service === "famelack") {

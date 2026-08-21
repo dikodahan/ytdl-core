@@ -91,6 +91,7 @@ const CASES = [
   ["youporn", "https://www.youporn.com/watch/16290308/tinderspecial-trailer1/"],
   ["youjizz", "https://www.youjizz.com/videos/zeichentrick-1-2189178.html"],
   ["xnxx", "https://www.xnxx.com/video-55awb78/skyrim_test_video"],
+  ["xvideos", "https://www.xvideos.com/video.oopthhhf76d/night_amateur_fuck"],
   ["famelack", "https://famelack.com/tv/us/BTtTvg520N96K8"],
   ["ontivi", "https://ip.ontivi.net/024721-9-kanal-izrail.html"],
   ["mako", "mako:k12"],

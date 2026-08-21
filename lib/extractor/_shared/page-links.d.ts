@@ -23,4 +23,9 @@ export declare function parseXnxxEntries(html: string, pageUrl: string): VideoLi
 export declare function parseXnxxNextPage(html: string, pageUrl: string): string | null;
 /** Parse browse categories/tags from XNXX homepage config or tag index pages. */
 export declare function parseXnxxCategories(html: string, pageUrl: string): CategoryListEntry[];
+/** Parse XVideos category menu links (`/c/Amateur-65`). */
+export declare function parseXvideosCategories(html: string, pageUrl: string): CategoryListEntry[];
+/** Parse video tiles from an XVideos listing / category page. */
+export declare function parseXvideosEntries(html: string, pageUrl: string): VideoListEntry[];
+export declare function parseXvideosNextPage(html: string, pageUrl: string): string | null;
 //# sourceMappingURL=page-links.d.ts.map

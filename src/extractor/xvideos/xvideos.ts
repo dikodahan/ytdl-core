@@ -3,26 +3,30 @@ import type { Format, InfoDict } from "../../core/types";
 import type { CategoryListResult } from "../../core/category-list";
 import type { ListVideosOptions, VideoListResult } from "../../core/video-list";
 import {
-  parseXnxxCategories,
-  parseXnxxEntries,
-  parseXnxxNextPage,
+  parseXvideosCategories,
+  parseXvideosEntries,
+  parseXvideosNextPage,
 } from "../_shared/page-links";
 import { baseInfo, hlsFormat, progressiveFormat } from "../_shared/helpers";
 
+/** Watch / embed URLs (`/video.{id}/…`, legacy `/video{id}/…`, `/embedframe/{id}`). */
 const VALID_URL =
-  /^https?:\/\/(?:video|www)\.xnxx3?\.com\/video-?(?<id>[0-9a-z]+)\//i;
+  /^https?:\/\/(?:[\w-]+\.)?xvideos2?\.com\/(?:video\.(?<id>[0-9a-z]+)|video(?<legacy_id>\d+)|embedframe\/(?<embed_id>[0-9a-z]+))\b/i;
 
 const LIST_URL_PATTERNS = [
-  /^https?:\/\/(?:www\.)?xnxx3?\.com\/search\/[^/?#]+(?:\/\d+)?\/?(?:[?#]|$)/i,
-  /^https?:\/\/(?:www\.)?xnxx3?\.com\/(?:best|hits|todays-selection|your-suggestions)\/?(?:\d+)?\/?(?:[?#]|$)/i,
-  /^https?:\/\/(?:www\.)?xnxx3?\.com\/porn-maker\/[^/?#]+(?:\/\d+)?\/?(?:[?#]|$)/i,
-  /^https?:\/\/(?:www\.)?xnxx3?\.com\/?(?:[?#]|$)/i,
+  /^https?:\/\/(?:[\w-]+\.)?xvideos2?\.com\/c\/[A-Za-z0-9_]+-\d+(?:\/\d+)?\/?(?:[?#]|$)/i,
+  /^https?:\/\/(?:[\w-]+\.)?xvideos2?\.com\/?(?:[?#]|$)/i,
 ];
 
-const CATEGORY_INDEX_URLS = ["https://www.xnxx.com/", "https://www.xnxx.com/tags/a"];
+const CATEGORY_INDEX_URLS = ["https://www.xvideos.com/", "https://www.xvideos.com/tags"];
+
+const DEFAULT_HEADERS: Record<string, string> = {
+  Referer: "https://www.xvideos.com/",
+  "Accept-Language": "en-US,en;q=0.9",
+};
 
 function absMediaUrl(raw: string): string {
-  const url = raw.trim();
+  const url = raw.trim().replace(/\\\//g, "/");
   if (url.startsWith("//")) return `https:${url}`;
   return url;
 }
@@ -31,7 +35,7 @@ function searchSetVideo(webpage: string, meta: string, fatal = true): string | n
   const re = new RegExp(`set${meta}\\s*\\(\\s*(["'])(?<value>(?:(?!\\1).)+)\\1`);
   const m = webpage.match(re);
   if (m?.groups?.value) return m.groups.value;
-  if (fatal) throw new Error(`xnxx: missing set${meta} on page`);
+  if (fatal) throw new Error(`xvideos: missing set${meta} on page`);
   return null;
 }
 
@@ -81,9 +85,13 @@ function parseFormats(webpage: string): Format[] {
   return formats;
 }
 
-export class XnxxIE extends InfoExtractor {
-  static IE_NAME = "xnxx";
-  static IE_DESC = "XNXX videos";
+function videoIdFromMatch(m: RegExpMatchArray): string | null {
+  return m.groups?.id || m.groups?.legacy_id || m.groups?.embed_id || null;
+}
+
+export class XVideosIE extends InfoExtractor {
+  static IE_NAME = "xvideos";
+  static IE_DESC = "XVideos";
   static readonly _VALID_URL = VALID_URL;
 
   static getInfo(): ExtractorInfo {
@@ -105,9 +113,7 @@ export class XnxxIE extends InfoExtractor {
   private listingBasePath(url: string): string {
     const parsed = new URL(url);
     let path = parsed.pathname.replace(/\/+$/, "") || "/";
-    if (/^\/search\/[^/]+/.test(path)) {
-      path = path.replace(/\/\d+$/, "");
-    } else if (/^\/(?:best|hits|todays-selection|your-suggestions|porn-maker\/[^/]+)/.test(path)) {
+    if (/^\/c\/[A-Za-z0-9_]+-\d+/i.test(path)) {
       path = path.replace(/\/\d+$/, "");
     }
     return path;
@@ -117,29 +123,30 @@ export class XnxxIE extends InfoExtractor {
     const parsed = new URL(url);
     const basePath = this.listingBasePath(url);
     if (!page || page <= 1) {
-      return `${parsed.origin}${basePath === "/" ? "/" : `${basePath}/`}`;
+      return `${parsed.origin}${basePath === "/" ? "/" : basePath}`;
     }
-    return `${parsed.origin}${basePath}/${page - 1}/`;
+    // XVideos category pagination: page 2 => `/c/Slug-id/1`
+    return `${parsed.origin}${basePath}/${page - 1}`;
   }
 
   private pageNumberFromUrl(url: string): number {
     const path = new URL(url).pathname.replace(/\/+$/, "");
-    const m = path.match(/\/(\d+)$/);
-    return m?.[1] ? Number(m[1]) + 1 : 1;
+    if (/^\/c\/[A-Za-z0-9_]+-\d+\/(\d+)$/i.test(path)) {
+      const m = path.match(/\/(\d+)$/);
+      return m?.[1] ? Number(m[1]) + 1 : 1;
+    }
+    return 1;
   }
 
   async extract(url: string): Promise<InfoDict> {
     const m = url.match(VALID_URL);
-    if (!m?.groups?.id) throw new Error(`Could not extract id from URL: ${url}`);
-    const videoId = m.groups.id;
+    const videoId = m ? videoIdFromMatch(m) : null;
+    if (!videoId) throw new Error(`Could not extract id from URL: ${url}`);
 
-    const webpage = await this.request.text(url, {
-      headers: { Referer: "https://www.xnxx.com/" },
-    });
-
+    const webpage = await this.request.text(url, { headers: DEFAULT_HEADERS });
     const formats = parseFormats(webpage);
     if (!formats.length) {
-      throw new Error(`xnxx: no playable formats for ${videoId}`);
+      throw new Error(`xvideos: no playable formats for ${videoId}`);
     }
 
     const title =
@@ -156,18 +163,20 @@ export class XnxxIE extends InfoExtractor {
     const thumbUrls = parseThumbnailUrls(webpage);
     const thumbnails =
       thumbUrls.length > 0
-        ? thumbUrls.map(url => ({ url }))
+        ? thumbUrls.map(u => ({ url: u }))
         : thumbnail
           ? [{ url: thumbnail }]
           : undefined;
 
-    const durationRaw = webpage.match(/property=["']video:duration["'][^>]*content=["'](\d+)/i)?.[1];
+    const durationRaw =
+      webpage.match(/property=["']video:duration["'][^>]*content=["'](\d+)/i)?.[1] ||
+      webpage.match(/setVideoDuration\s*\(\s*['"]?(\d+)/i)?.[1];
     const duration = durationRaw ? Number(durationRaw) : null;
 
-    const viewRaw = webpage.match(/id=["']nb-views-number[^>]+>([\d,.]+)/i)?.[1];
+    const viewRaw = webpage.match(/id=["']nb-views-number[^>]*>([\d,.]+)/i)?.[1];
     const viewCount = viewRaw ? Number(viewRaw.replace(/,/g, "")) : null;
 
-    return baseInfo("xnxx", url, {
+    return baseInfo(XVideosIE.IE_NAME, url, {
       id: videoId,
       title,
       thumbnail: thumbnail || thumbUrls[0],
@@ -180,55 +189,56 @@ export class XnxxIE extends InfoExtractor {
   }
 
   async listVideos(url: string, options: ListVideosOptions = {}): Promise<VideoListResult> {
-    if (!XnxxIE.listUrlSupported(url)) {
-      throw new Error(`xnxx: not a listing URL (use /search/…, /best/, homepage, etc.)`);
+    if (!XVideosIE.listUrlSupported(url)) {
+      throw new Error(`xvideos: not a listing URL (use /c/{Category}-{id} or homepage)`);
     }
 
     const page = options.page && options.page > 0 ? options.page : undefined;
     const fetchUrl = this.listingUrl(url, page);
-    const webpage = await this.request.text(fetchUrl, {
-      headers: { Referer: "https://www.xnxx.com/" },
-    });
+    const webpage = await this.request.text(fetchUrl, { headers: DEFAULT_HEADERS });
 
-    let entries = parseXnxxEntries(webpage, fetchUrl);
+    let entries = parseXvideosEntries(webpage, fetchUrl);
     if (options.limit && options.limit > 0) entries = entries.slice(0, options.limit);
 
     const playlistTitle =
       webpage.match(/property=["']og:title["'][^>]*content=["']([^"']+)/i)?.[1]?.trim() ||
-      webpage.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]?.replace(/\s*-\s*XNXX\.COM.*$/i, "").trim() ||
+      webpage
+        .match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]
+        ?.replace(/\s*-\s*XVIDEOS\.COM.*$/i, "")
+        .trim() ||
       undefined;
 
-    const basePath = this.listingBasePath(fetchUrl).replace(/^\/+|\/+$/g, "") || "xnxx";
+    const basePath = this.listingBasePath(fetchUrl).replace(/^\/+|\/+$/g, "") || "xvideos";
     const pageNum = this.pageNumberFromUrl(fetchUrl);
 
     return {
-      extractor: XnxxIE.IE_NAME,
+      extractor: XVideosIE.IE_NAME,
       webpage_url: fetchUrl,
       playlist_id: page && page > 1 ? `${basePath}/${pageNum - 1}` : basePath,
       playlist_title: playlistTitle,
       page: pageNum,
       entries,
-      next_page_url: parseXnxxNextPage(webpage, fetchUrl),
+      next_page_url: parseXvideosNextPage(webpage, fetchUrl),
     };
   }
 
   async listCategories(
-    url = "https://www.xnxx.com/",
+    url = "https://www.xvideos.com/",
     options: { limit?: number } = {},
   ): Promise<CategoryListResult> {
-    const normalized = url.replace(/\/+$/, "") || "https://www.xnxx.com";
+    const normalized = url.replace(/\/+$/, "") || "https://www.xvideos.com";
     const targets =
-      normalized === "https://www.xnxx.com" || normalized.endsWith("/tags")
+      normalized === "https://www.xvideos.com" ||
+      normalized === "https://www.xvideos.com/tags" ||
+      /xvideos2?\.com\/?$/i.test(normalized)
         ? CATEGORY_INDEX_URLS
         : [normalized];
 
     let lastError = "no categories found";
     for (const indexUrl of targets) {
       try {
-        const webpage = await this.request.text(indexUrl, {
-          headers: { Referer: "https://www.xnxx.com/" },
-        });
-        let entries = parseXnxxCategories(webpage, indexUrl);
+        const webpage = await this.request.text(indexUrl, { headers: DEFAULT_HEADERS });
+        let entries = parseXvideosCategories(webpage, indexUrl);
         if (!entries.length) {
           lastError = `no categories found at ${indexUrl}`;
           continue;
@@ -237,7 +247,7 @@ export class XnxxIE extends InfoExtractor {
           entries = entries.slice(0, options.limit);
         }
         return {
-          extractor: XnxxIE.IE_NAME,
+          extractor: XVideosIE.IE_NAME,
           webpage_url: indexUrl,
           entries,
         };
@@ -245,6 +255,6 @@ export class XnxxIE extends InfoExtractor {
         lastError = err instanceof Error ? err.message : String(err);
       }
     }
-    throw new Error(`xnxx: ${lastError}`);
+    throw new Error(`xvideos: ${lastError}`);
   }
 }

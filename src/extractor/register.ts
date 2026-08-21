@@ -77,6 +77,7 @@ import { FoxNewsIE } from "./foxnews";
 import { YouPornIE } from "./youporn";
 import { YouJizzIE } from "./youjizz";
 import { XnxxIE } from "./xnxx";
+import { XVideosIE } from "./xvideos";
 import { FamelackIE } from "./famelack";
 import { OntiviIE } from "./ontivi";
 import { MakoIE } from "./mako";
@@ -178,6 +179,7 @@ export function registerBuiltInExtractors(): void {
   registerExtractor(YouPornIE);
   registerExtractor(YouJizzIE);
   registerExtractor(XnxxIE);
+  registerExtractor(XVideosIE);
   registerExtractor(FamelackIE);
   registerExtractor(OntiviIE);
   registerExtractor(MakoIE);
@@ -275,6 +277,7 @@ export {
   YouPornIE,
   YouJizzIE,
   XnxxIE,
+  XVideosIE,
   FamelackIE,
   OntiviIE,
   MakoIE,
