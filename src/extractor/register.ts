@@ -81,6 +81,7 @@ import { XVideosIE } from "./xvideos";
 import { FamelackIE } from "./famelack";
 import { OntiviIE } from "./ontivi";
 import { MakoIE } from "./mako";
+import { I24IE } from "./i24";
 
 // Batch 6 — hosts / short clips
 import { GoogleDriveIE } from "./googledrive";
@@ -183,6 +184,7 @@ export function registerBuiltInExtractors(): void {
   registerExtractor(FamelackIE);
   registerExtractor(OntiviIE);
   registerExtractor(MakoIE);
+  registerExtractor(I24IE);
 
   // Batch 6 — hosts / short clips
   registerExtractor(GoogleDriveIE);
@@ -281,6 +283,7 @@ export {
   FamelackIE,
   OntiviIE,
   MakoIE,
+  I24IE,
 };
 export {
   GoogleDriveIE,

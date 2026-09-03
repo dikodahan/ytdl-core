@@ -17,6 +17,7 @@ const LIST_CASES = [
   ["youjizz", "https://www.youjizz.com/categories/teen-1.html"],
   ["xnxx", "https://www.xnxx.com/search/amateur/"],
   ["xvideos", "https://www.xvideos.com/c/Amateur-65"],
+  ["i24", "https://video.i24news.tv/regions"],
   ["famelack", "https://famelack.com/tv/us"],
   ["ontivi", "https://ip.ontivi.net/tv3"],
   ["mako", "mako:channels"],
@@ -27,6 +28,7 @@ describe("video list API", () => {
     const names = listListCapableExtractors().map(ie => ie.IE_NAME).sort();
     assert.deepEqual(names, [
       "famelack",
+      "i24",
       "kaltura-ott",
       "mako",
       "ontivi",
@@ -84,6 +86,10 @@ describe("video list API", () => {
           assert.match(entry.id, /^[a-z0-9]+$/i);
           assert.match(entry.url, /xvideos\.com\/video\./);
           if (entry.thumbnail) assert.match(entry.thumbnail, /^https?:\/\//);
+        }
+        if (service === "i24") {
+          assert.match(entry.id, /^[a-f0-9]{24}$/);
+          assert.match(entry.url, /video\.i24news\.tv\/r\/[a-z]+\/page\//);
         }
         if (service === "famelack") {
           assert.match(entry.id, /^[A-Za-z0-9]+$/);

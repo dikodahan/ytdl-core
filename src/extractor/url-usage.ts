@@ -495,6 +495,17 @@ export const URL_USAGE: Record<string, UrlUsageGuide> = {
     notes:
       "Channel IDs are discovered from mako.co.il; the MediaBox catalog is used only if site discovery fails. List with `mako:channels`.",
   },
+  i24: {
+    usage:
+      "Paste an i24NEWS video region page (`video.i24news.tv/r/{region}/page/{id}`), channel player URL, or `i24:hebrew`.",
+    examples: [
+      "https://video.i24news.tv/r/hebrew/page/6875657dd9a706e53126829d",
+      "i24:hebrew",
+      "https://video.i24news.tv/player/channel/69b17e029abd89c807678067",
+    ],
+    notes:
+      "Live HLS from Univtec sections. Discover region page IDs with `https://video.i24news.tv/regions`.",
+  },
 
   // Batch 6 — hosts / short clips
   googledrive: {
@@ -632,6 +643,19 @@ export const LIST_URL_USAGE: Record<string, UrlUsageGuide> = {
     categoriesIndexUrl: "mako:channels",
     notes:
       "Discovers live/linear channels from mako.co.il (`/mako-vod` live rail). MediaBox fallback is used only when site discovery fails.",
+  },
+  i24: {
+    usage:
+      "Paste `https://video.i24news.tv/regions` to list region page IDs, or a region page to list live channel IDs.",
+    examples: [
+      "https://video.i24news.tv/regions",
+      "https://video.i24news.tv/r/hebrew/page/6875657dd9a706e53126829d",
+    ],
+    defaultUrl: "https://video.i24news.tv/regions",
+    categoriesDefaultUrl: "https://video.i24news.tv/regions",
+    categoriesIndexUrl: "https://video.i24news.tv/regions",
+    notes:
+      "Region listing returns page IDs (`/r/{region}/page/{id}`). Listing a region page returns live channel IDs with `/player/channel/{id}` URLs.",
   },
   "kaltura-ott": {
     usage:
