@@ -18,6 +18,7 @@ const LIST_CASES = [
   ["xnxx", "https://www.xnxx.com/search/amateur/"],
   ["xvideos", "https://www.xvideos.com/c/Amateur-65"],
   ["i24", "https://video.i24news.tv/regions"],
+  ["aljazeera", "https://network.aljazeera.net/en/channels"],
   ["famelack", "https://famelack.com/tv/us"],
   ["ontivi", "https://ip.ontivi.net/tv3"],
   ["mako", "mako:channels"],
@@ -27,6 +28,7 @@ describe("video list API", () => {
   it("registers list-capable extractors", () => {
     const names = listListCapableExtractors().map(ie => ie.IE_NAME).sort();
     assert.deepEqual(names, [
+      "aljazeera",
       "famelack",
       "i24",
       "kaltura-ott",
@@ -68,7 +70,7 @@ describe("video list API", () => {
       assert.equal(result.extractor, service);
       assert.ok(result.entries.length >= 1, "expected at least one entry");
       for (const entry of result.entries) {
-        assert.match(entry.url, /^(?:https?:\/\/|mako:|kaltura-ott:)/);
+        assert.match(entry.url, /^(?:https?:\/\/|mako:|kaltura-ott:|aljazeera:)/);
         if (service === "youporn") {
           assert.match(entry.id, /^\d+$/);
           assert.match(entry.url, /youporn\.com\/watch\//);
@@ -90,6 +92,10 @@ describe("video list API", () => {
         if (service === "i24") {
           assert.match(entry.id, /^[a-f0-9]{24}$/);
           assert.match(entry.url, /video\.i24news\.tv\/r\/[a-z]+\/page\//);
+        }
+        if (service === "aljazeera") {
+          assert.match(entry.id, /^[a-z0-9-]+$/);
+          assert.match(entry.url, /^(?:aljazeera:|https:\/\/network\.aljazeera\.net\/)/);
         }
         if (service === "famelack") {
           assert.match(entry.id, /^[A-Za-z0-9]+$/);

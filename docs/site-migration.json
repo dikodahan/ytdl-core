@@ -722,11 +722,11 @@
         },
         {
           "id": "aljazeera",
-          "status": "partial",
+          "status": "ready",
           "ies": [
             "AlJazeeraIE"
           ],
-          "source": "generated"
+          "source": "hand"
         },
         {
           "id": "allocine",

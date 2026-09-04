@@ -96,6 +96,7 @@ const CASES = [
   ["ontivi", "https://ip.ontivi.net/024721-9-kanal-izrail.html"],
   ["mako", "mako:k12"],
   ["i24", "https://video.i24news.tv/r/hebrew/page/6875657dd9a706e53126829d"],
+  ["aljazeera", "aljazeera:english"],
   // Batch 6
   ["googledrive", "https://drive.google.com/file/d/0ByeS4oOUV-49Zzh4R1J6R09zazQ/view"],
   ["dropbox", "https://www.dropbox.com/s/nelirfsxnmcfbfh/video.mp4?dl=0"],
