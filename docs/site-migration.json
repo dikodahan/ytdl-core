@@ -2642,11 +2642,11 @@
         },
         {
           "id": "gbnews",
-          "status": "partial",
+          "status": "ready",
           "ies": [
-            "GBNewsIE"
+            "GbnewsIE"
           ],
-          "source": "generated"
+          "source": "hand"
         },
         {
           "id": "gdcvault",

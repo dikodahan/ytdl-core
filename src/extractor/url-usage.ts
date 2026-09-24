@@ -518,6 +518,18 @@ export const URL_USAGE: Record<string, UrlUsageGuide> = {
     notes:
       "Live streams use Brightcove (English/Mubasher/Documentary) or YouTube (Arabic). Discover channel IDs via `https://network.aljazeera.net/en/channels`.",
   },
+  gbnews: {
+    usage:
+      "Paste `gbnews:gbn1` / `gbnews:1069`, a watch live page, or a Perception/Simplestream `.m3u8` URL.",
+    examples: [
+      "gbnews:gbn1",
+      "gbnews:1069",
+      "https://www.gbnews.com/watch/live",
+      "https://www.gbnews.com/watch/live-2",
+    ],
+    notes:
+      "Live HLS via Simplestream streams API (uvid). Perception.tv links are the browser ad-stitched variant of the same live feed. Discover channels at `https://www.gbnews.com/watch/live`.",
+  },
 
   // Batch 6 — hosts / short clips
   googledrive: {
@@ -677,6 +689,16 @@ export const LIST_URL_USAGE: Record<string, UrlUsageGuide> = {
     categoriesIndexUrl: "https://network.aljazeera.net/en/channels",
     notes:
       "Returns channel slugs such as `aljazeera-english`. Streamable entries use `aljazeera:{id}` extract URLs.",
+  },
+  gbnews: {
+    usage:
+      "Paste `https://www.gbnews.com/watch/live` (or `gbnews:channels`) to list GBN 1/2 channel IDs (Simplestream uvid).",
+    examples: ["https://www.gbnews.com/watch/live", "gbnews:channels"],
+    defaultUrl: "https://www.gbnews.com/watch/live",
+    categoriesDefaultUrl: "https://www.gbnews.com/watch/live",
+    categoriesIndexUrl: "https://www.gbnews.com/watch/live",
+    notes:
+      "Entries include Simplestream uvid (`id`) and slug (`display_id` / `gbnews:gbn1`). Extract with `gbnews:{slug|uvid}`.",
   },
   "kaltura-ott": {
     usage:
