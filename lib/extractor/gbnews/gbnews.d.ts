@@ -18,5 +18,5 @@ export declare class GbnewsIE extends InfoExtractor {
     private infoFromHls;
 }
 export { normalizeGbnewsChannelId } from "./client";
-export { GBNEWS_LIVE_URL } from "./client";
+export { GBNEWS_LIVE_URL, PERCEPTION_ORIGIN } from "./client";
 //# sourceMappingURL=gbnews.d.ts.map

@@ -520,15 +520,15 @@ export const URL_USAGE: Record<string, UrlUsageGuide> = {
   },
   gbnews: {
     usage:
-      "Paste `gbnews:gbn1` / `gbnews:1069`, a watch live page, or a Perception/Simplestream `.m3u8` URL.",
+      "Paste `gbnews:gbn1` / `gbnews:385`, a watch live page, or a Perception `.m3u8?mwk=…` URL.",
     examples: [
       "gbnews:gbn1",
-      "gbnews:1069",
+      "gbnews:385",
       "https://www.gbnews.com/watch/live",
       "https://www.gbnews.com/watch/live-2",
     ],
     notes:
-      "Live HLS via Simplestream streams API (uvid). Perception.tv links are the browser ad-stitched variant of the same live feed. Discover channels at `https://www.gbnews.com/watch/live`.",
+      "Live HLS from Perception.tv Catherine API (`mwk` session token + client params). Discover channels at `https://www.gbnews.com/watch/live`.",
   },
 
   // Batch 6 — hosts / short clips
@@ -692,13 +692,13 @@ export const LIST_URL_USAGE: Record<string, UrlUsageGuide> = {
   },
   gbnews: {
     usage:
-      "Paste `https://www.gbnews.com/watch/live` (or `gbnews:channels`) to list GBN 1/2 channel IDs (Simplestream uvid).",
+      "Paste `https://www.gbnews.com/watch/live` (or `gbnews:channels`) to list GBN channel IDs (Perception channel id).",
     examples: ["https://www.gbnews.com/watch/live", "gbnews:channels"],
     defaultUrl: "https://www.gbnews.com/watch/live",
     categoriesDefaultUrl: "https://www.gbnews.com/watch/live",
     categoriesIndexUrl: "https://www.gbnews.com/watch/live",
     notes:
-      "Entries include Simplestream uvid (`id`) and slug (`display_id` / `gbnews:gbn1`). Extract with `gbnews:{slug|uvid}`.",
+      "Entries include Perception channel id (`id`, e.g. `385`) and slug (`display_id` / `gbnews:gbn1`). Extract with `gbnews:{slug|id}`.",
   },
   "kaltura-ott": {
     usage:

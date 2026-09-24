@@ -6,10 +6,12 @@ import { baseInfo, hlsFormat } from "../_shared/helpers";
 import {
   GBNEWS_CHANNELS_URL,
   GBNEWS_ORIGIN,
+  PERCEPTION_ORIGIN,
   discoverGbnewsChannels,
   extractGbnewsLiveFromPage,
-  fetchGbnewsStreamUrl,
+  fetchPerceptionStreamUrl,
   resolveGbnewsChannel,
+  withHlsClientParams,
   type GbnewsChannel,
 } from "./client";
 
@@ -17,15 +19,11 @@ import {
 const LIVE_PAGE_URL =
   /^https?:\/\/(?:www\.)?gbnews\.com\/watch\/live(?:-2)?\/?(?:[?#]|$)/i;
 
-/** Direct Perception.tv HLS (browser SSAI variant). */
+/** Direct Perception.tv HLS (session `mwk` URLs). */
 const PERCEPTION_HLS_URL =
   /^https?:\/\/(?:[\w-]+\.)?perception\.tv\/[^?\s]+\.m3u8(?:\?[^\s]*)?$/i;
 
-/** Direct Simplestream / CDN HLS playlists for GB News. */
-const DIRECT_HLS_URL =
-  /^https?:\/\/(?:live-gbnews\.simplestreamcdn\.com|[\w.-]*gbnews[\w.-]*\.(?:cloudfront\.net|simplestreamcdn\.com))\/[^\s]+\.m3u8(?:\?[^\s]*)?$/i;
-
-/** Pseudo: `gbnews:gbn1`, `gbnews:1069`, `gbnews:channels`. */
+/** Pseudo: `gbnews:gbn1`, `gbnews:385`, `gbnews:channels`. */
 const PSEUDO_URL = /^gbnews:(?<id>channels|[a-z0-9-]+)(?:[?#]|$)/i;
 
 const LIST_URL_PATTERNS = [
@@ -40,19 +38,19 @@ function isListOnlyPseudo(url: string): boolean {
 
 export class GbnewsIE extends InfoExtractor {
   static IE_NAME = "gbnews";
-  static IE_DESC = "GB News live (Simplestream / Perception HLS)";
+  static IE_DESC = "GB News live (Perception.tv HLS)";
   static readonly _VALID_URL =
-    /^(?:gbnews:(?!channels$)[a-z0-9-]+|https?:\/\/(?:www\.)?gbnews\.com\/watch\/live(?:-2)?\/?(?:[?#]|$)|https?:\/\/(?:[\w-]+\.)?perception\.tv\/[^?\s]+\.m3u8(?:\?[^\s]*)?|https?:\/\/(?:live-gbnews\.simplestreamcdn\.com|[\w.-]*gbnews[\w.-]*\.(?:cloudfront\.net|simplestreamcdn\.com))\/[^\s]+\.m3u8(?:\?[^\s]*)?)/i;
+    /^(?:gbnews:(?!channels$)[a-z0-9-]+|https?:\/\/(?:www\.)?gbnews\.com\/watch\/live(?:-2)?\/?(?:[?#]|$)|https?:\/\/(?:[\w-]+\.)?perception\.tv\/[^?\s]+\.m3u8(?:\?[^\s]*)?)/i;
 
   static getInfo(): ExtractorInfo {
     return {
       name: this.IE_NAME,
-      description: `${this.IE_DESC} — live HLS via Simplestream streams API`,
+      description: `${this.IE_DESC} — signed Catherine API → mwk HLS`,
       validUrl: String(this._VALID_URL),
       options: [],
       status: "ready",
       notes:
-        "Discover GBN 1/2 at `https://www.gbnews.com/watch/live`, then extract `gbnews:gbn1` / `gbnews:1069`. Stream links come from Simplestream (Perception.tv URLs are the ad-stitched browser variant).",
+        "Discover channels at `https://www.gbnews.com/watch/live`, then extract `gbnews:gbn1` / `gbnews:385`. Stream URLs are Perception.tv HLS with a short-lived `mwk` token.",
       listSupported: true,
     };
   }
@@ -60,46 +58,45 @@ export class GbnewsIE extends InfoExtractor {
   static suitable(url: string): boolean {
     if (LIST_URL_PATTERNS.some(re => re.test(url) && !LIVE_PAGE_URL.test(url))) return false;
     if (isListOnlyPseudo(url)) return false;
-    // Live pages are both listable and extractable — prefer extract when suitable().
     return (
       LIVE_PAGE_URL.test(url) ||
       PERCEPTION_HLS_URL.test(url) ||
-      DIRECT_HLS_URL.test(url) ||
       (!!url.match(PSEUDO_URL)?.groups?.id && !isListOnlyPseudo(url))
     );
   }
 
   static listUrlSupported(url: string): boolean {
-    if (PERCEPTION_HLS_URL.test(url) || DIRECT_HLS_URL.test(url)) return false;
+    if (PERCEPTION_HLS_URL.test(url)) return false;
     if (PSEUDO_URL.test(url) && !isListOnlyPseudo(url)) return false;
     return LIST_URL_PATTERNS.some(re => re.test(url));
   }
 
   async extract(url: string): Promise<InfoDict> {
-    if (PERCEPTION_HLS_URL.test(url) || DIRECT_HLS_URL.test(url)) {
-      return this.infoFromHls(url, url, "GB News Live", null);
+    if (PERCEPTION_HLS_URL.test(url)) {
+      return this.infoFromHls(withHlsClientParams(url), url, "GB News Live", null);
     }
 
     if (LIVE_PAGE_URL.test(url)) {
       const live = await extractGbnewsLiveFromPage(this.request, url);
-      return this.infoFromHls(live.streamUrl, live.pageUrl, live.title, live.thumbnail, live.uvid);
+      return this.infoFromHls(
+        live.streamUrl,
+        live.pageUrl,
+        live.title,
+        live.thumbnail,
+        live.channelId,
+      );
     }
 
     const pseudo = url.match(PSEUDO_URL);
     if (pseudo?.groups?.id) {
       const channel = await resolveGbnewsChannel(this.request, pseudo.groups.id);
-      const streamUrl = await fetchGbnewsStreamUrl(
-        this.request,
-        channel.uvid,
-        channel.key,
-        channel.playerId,
-      );
+      const streamUrl = await fetchPerceptionStreamUrl(this.request, channel.id);
       return this.infoFromHls(
         streamUrl,
         channel.pageUrl,
         channel.title,
         channel.thumbnail,
-        channel.uvid,
+        channel.id,
         channel.slug,
       );
     }
@@ -136,10 +133,10 @@ export class GbnewsIE extends InfoExtractor {
       extractor: GbnewsIE.IE_NAME,
       webpage_url: GBNEWS_CHANNELS_URL,
       entries: channels.map(ch => ({
-        id: ch.slug,
+        id: ch.id,
         title: ch.title,
         url: ch.pageUrl,
-        display_id: ch.uvid,
+        display_id: ch.slug,
         thumbnail: ch.thumbnail,
       })),
     };
@@ -147,7 +144,7 @@ export class GbnewsIE extends InfoExtractor {
 
   private entryFromChannel(ch: GbnewsChannel) {
     return {
-      id: ch.uvid,
+      id: ch.id,
       url: `gbnews:${ch.slug}`,
       title: ch.title,
       display_id: ch.slug,
@@ -160,7 +157,7 @@ export class GbnewsIE extends InfoExtractor {
     pageUrl: string,
     title: string,
     thumbnail: string | null,
-    uvid?: string,
+    channelId?: string,
     slug?: string,
   ): InfoDict {
     const format: Format = hlsFormat(streamUrl, "hls");
@@ -171,8 +168,8 @@ export class GbnewsIE extends InfoExtractor {
     format.manifest_url = streamUrl;
 
     return baseInfo(GbnewsIE.IE_NAME, pageUrl, {
-      id: uvid || slug || "live",
-      display_id: slug || uvid || "live",
+      id: channelId || slug || "live",
+      display_id: slug || channelId || "live",
       title,
       thumbnail,
       live_status: "is_live",
@@ -182,6 +179,5 @@ export class GbnewsIE extends InfoExtractor {
   }
 }
 
-// Re-export helpers used by tests / callers
 export { normalizeGbnewsChannelId } from "./client";
-export { GBNEWS_LIVE_URL } from "./client";
+export { GBNEWS_LIVE_URL, PERCEPTION_ORIGIN } from "./client";
