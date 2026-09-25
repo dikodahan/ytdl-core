@@ -3689,6 +3689,14 @@
           "source": "generated"
         },
         {
+          "id": "livenewsnow",
+          "status": "ready",
+          "ies": [
+            "LiveNewsNowIE"
+          ],
+          "source": "hand"
+        },
+        {
           "id": "livejournal",
           "status": "partial",
           "ies": [

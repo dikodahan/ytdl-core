@@ -84,6 +84,7 @@ import { MakoIE } from "./mako";
 import { I24IE } from "./i24";
 import { AlJazeeraIE } from "./aljazeera";
 import { GbnewsIE } from "./gbnews";
+import { LiveNewsNowIE } from "./livenewsnow";
 
 // Batch 6 — hosts / short clips
 import { GoogleDriveIE } from "./googledrive";
@@ -189,6 +190,7 @@ export function registerBuiltInExtractors(): void {
   registerExtractor(I24IE);
   registerExtractor(AlJazeeraIE);
   registerExtractor(GbnewsIE);
+  registerExtractor(LiveNewsNowIE);
 
   // Batch 6 — hosts / short clips
   registerExtractor(GoogleDriveIE);
@@ -290,6 +292,7 @@ export {
   I24IE,
   AlJazeeraIE,
   GbnewsIE,
+  LiveNewsNowIE,
 };
 export {
   GoogleDriveIE,

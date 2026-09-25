@@ -530,6 +530,18 @@ export const URL_USAGE: Record<string, UrlUsageGuide> = {
     notes:
       "Live HLS from Perception.tv Catherine API (`mwk` session token + client params). Discover channels at `https://www.gbnews.com/watch/live`.",
   },
+  livenewsnow: {
+    usage:
+      "Paste `livenewsnow:foxnews`, a channel page (`/american/…`, `/business/…`, `/featured/…`), or a signed livenewsplay(er) `.m3u8` URL.",
+    examples: [
+      "livenewsnow:foxnews",
+      "livenewsnow:featured/foxnews",
+      "https://www.livenewsnow.com/featured/foxnews.html",
+      "https://www.livenewsnow.com/american/cnbc.html",
+    ],
+    notes:
+      "Stream URLs are signed HLS (`token`/`expires`/`sig` or `sec*`/`newz*` query params). Discover IDs via category pages under `/category/american` and `/category/business`.",
+  },
 
   // Batch 6 — hosts / short clips
   googledrive: {
@@ -699,6 +711,21 @@ export const LIST_URL_USAGE: Record<string, UrlUsageGuide> = {
     categoriesIndexUrl: "https://www.gbnews.com/watch/live",
     notes:
       "Entries include Perception channel id (`id`, e.g. `385`) and slug (`display_id` / `gbnews:gbn1`). Extract with `gbnews:{slug|id}`.",
+  },
+  livenewsnow: {
+    usage:
+      "Paste a category URL (`/category/american`, `/category/business`) or `livenewsnow:categories` / `livenewsnow:american` to list channel IDs.",
+    examples: [
+      "https://www.livenewsnow.com/category/american",
+      "https://www.livenewsnow.com/category/business",
+      "livenewsnow:categories",
+      "livenewsnow:american",
+    ],
+    defaultUrl: "https://www.livenewsnow.com/category/american",
+    categoriesDefaultUrl: "https://www.livenewsnow.com/",
+    categoriesIndexUrl: "https://www.livenewsnow.com/",
+    notes:
+      "Category listing returns channel slugs (`display_id`, e.g. `foxnews`). Extract with `livenewsnow:{slug}` or the channel page URL. `listCategories` returns `american` and `business`.",
   },
   "kaltura-ott": {
     usage:
