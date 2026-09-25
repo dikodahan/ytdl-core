@@ -15,12 +15,21 @@ export const LNN_REQUEST_HEADERS: Record<string, string> = {
   Origin: LNN_ORIGIN,
   "User-Agent":
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+  "Cache-Control": "no-cache, no-store, must-revalidate",
+  Pragma: "no-cache",
 };
 
 export const LNN_STREAM_HEADERS: Record<string, string> = {
   Referer: `${LNN_ORIGIN}/`,
   Origin: LNN_ORIGIN,
   Accept: "*/*",
+};
+
+/** Headers for `?renew=1` token mint (JSON). */
+export const LNN_RENEW_HEADERS: Record<string, string> = {
+  ...LNN_REQUEST_HEADERS,
+  Accept: "application/json,text/plain,*/*",
+  "X-Requested-With": "XMLHttpRequest",
 };
 
 export interface LnnCategory {
@@ -426,14 +435,97 @@ export async function resolveLnnChannel(
   return matches[0]!;
 }
 
+/** Build the on-page renew URL used by the Live News Now player (`?renew=1`). */
+export function lnnRenewUrl(pageUrl: string): string {
+  const u = new URL(pageUrl);
+  u.searchParams.set("renew", "1");
+  u.searchParams.set("_", String(Date.now()));
+  return u.toString();
+}
+
+/** Parse `{"url":"…","expires_in":3600}` (or the same JSON embedded in HTML). */
+export function parseLnnRenewResponse(
+  body: string,
+): { url: string; expiresIn: number } | null {
+  const tryParse = (raw: string): { url: string; expiresIn: number } | null => {
+    try {
+      const j = JSON.parse(raw) as { url?: unknown; expires_in?: unknown };
+      if (typeof j?.url !== "string" || !j.url) return null;
+      const url = unescapeJsString(j.url).trim();
+      if (!/\.m3u8(?:\?|$)/i.test(url)) return null;
+      const expiresIn =
+        typeof j.expires_in === "number" && Number.isFinite(j.expires_in)
+          ? j.expires_in
+          : Number(j.expires_in);
+      return {
+        url,
+        expiresIn: Number.isFinite(expiresIn) && expiresIn > 0 ? expiresIn : 3600,
+      };
+    } catch {
+      return null;
+    }
+  };
+
+  const trimmed = body.trim();
+  const direct = tryParse(trimmed);
+  if (direct) return direct;
+
+  const start = body.indexOf('{"url"');
+  if (start < 0) return null;
+  // Flat renew payload — find the matching closing brace for this object.
+  let depth = 0;
+  for (let i = start; i < body.length; i++) {
+    const ch = body[i];
+    if (ch === "{") depth++;
+    else if (ch === "}") {
+      depth--;
+      if (depth === 0) {
+        return tryParse(body.slice(start, i + 1));
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Mint a fresh signed HLS URL via the channel page's `?renew=1` endpoint.
+ * Returns null when the page does not support renew (legacy JWPlayer embeds).
+ */
+export async function renewLnnStreamUrl(
+  request: RequestClient,
+  pageUrl: string,
+): Promise<string | null> {
+  const renewUrl = lnnRenewUrl(pageUrl);
+  try {
+    const text = await request.text(renewUrl, { headers: { ...LNN_RENEW_HEADERS } });
+    const parsed = parseLnnRenewResponse(text);
+    if (!parsed) return null;
+    if (SIGNED_HLS_URL.test(parsed.url) || /\.m3u8(?:\?|$)/i.test(parsed.url)) {
+      return parsed.url;
+    }
+  } catch {
+    /* fall back to HTML scrape */
+  }
+  return null;
+}
+
 export async function extractLnnStreamFromPage(
   request: RequestClient,
   pageUrl: string,
 ): Promise<LnnStreamInfo> {
   const parsed = parseChannelPageUrl(pageUrl);
   const normalized = parsed?.pageUrl || normalizeChannelPageUrl(pageUrl);
-  const html = await request.text(normalized, { headers: { ...LNN_REQUEST_HEADERS } });
-  const streamUrl = extractSignedStreamUrl(html);
+
+  // Prefer `?renew=1` — embeds in HTML are short-lived (~1h) and go stale while
+  // the page HTML stays cached. Renew mints a new token every call.
+  const renewed = await renewLnnStreamUrl(request, normalized);
+
+  const bust = new URL(normalized);
+  bust.searchParams.set("_", String(Date.now()));
+  const html = await request.text(bust.toString(), {
+    headers: { ...LNN_REQUEST_HEADERS },
+  });
+  const streamUrl = renewed || extractSignedStreamUrl(html);
   if (!streamUrl) {
     throw new Error(`livenewsnow: no stream URL found on ${normalized}`);
   }

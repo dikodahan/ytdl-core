@@ -8,6 +8,7 @@ const {
   parseCategoryChannelsHtml,
   parseChannelPageUrl,
   parseLnnPseudoId,
+  parseLnnRenewResponse,
   unescapeJsString,
 } = require("../../lib/extractor/livenewsnow");
 const { registerBuiltInExtractors } = require("../../lib/extractor/register");
@@ -64,6 +65,18 @@ describe("livenewsnow helpers", () => {
       });
     `;
     assert.match(extractSignedStreamUrl(html), /foxbusiness\/index\.m3u8\?token=t&expires=1&sig=s/);
+  });
+
+  it("parses renew JSON payloads", () => {
+    const parsed = parseLnnRenewResponse(
+      '{"url":"https:\\/\\/stream.livenewsplay.com:9443\\/hls\\/foxnewssd\\/index.m3u8?token=abc\\u0026expires=1\\u0026sig=xyz","expires_in":3600}',
+    );
+    assert.equal(
+      parsed.url,
+      "https://stream.livenewsplay.com:9443/hls/foxnewssd/index.m3u8?token=abc&expires=1&sig=xyz",
+    );
+    assert.equal(parsed.expiresIn, 3600);
+    assert.equal(parseLnnRenewResponse("<html>nope</html>"), null);
   });
 
   it("parses category channel cards from h3 and div entry titles", () => {
@@ -183,6 +196,42 @@ describe("livenewsnow live", { timeout: 90_000 }, () => {
       assert.match(res.body, /#EXTM3U/);
     } finally {
       await ydl.close?.().catch(() => undefined);
+    }
+  });
+
+  it("mints a different foxnews token on each extract via renew", async () => {
+    const a = await extractInfo("livenewsnow:foxnews", { service: "livenewsnow" });
+    const b = await extractInfo("livenewsnow:foxnews", { service: "livenewsnow" });
+    const urlA = a.formats[0].url;
+    const urlB = b.formats[0].url;
+    assert.notEqual(urlA, urlB, "expected a fresh renew token on each extract");
+    for (const url of [urlA, urlB]) {
+      const res = await fetch(url, {
+        headers: {
+          Referer: "https://www.livenewsnow.com/",
+          Origin: "https://www.livenewsnow.com",
+          "User-Agent": "Mozilla/5.0",
+        },
+      });
+      const text = await res.text();
+      assert.equal(res.status, 200);
+      assert.match(text, /#EXTM3U/);
+    }
+  });
+
+  it("extracts playable HLS for fox business and msnbc", async () => {
+    for (const id of ["fox-business-network-fbn", "msnbc"]) {
+      const info = await extractInfo(`livenewsnow:${id}`, { service: "livenewsnow" });
+      const url = info.formats[0].url;
+      assert.match(url, /\.m3u8\?/i);
+      const res = await fetch(url, {
+        headers: info.formats[0].http_headers || {
+          Referer: "https://www.livenewsnow.com/",
+        },
+      });
+      const text = await res.text();
+      assert.equal(res.status, 200, `${id} playlist HTTP ${res.status}`);
+      assert.match(text, /#EXTM3U/, `${id} playlist missing EXTM3U`);
     }
   });
 

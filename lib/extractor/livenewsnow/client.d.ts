@@ -8,6 +8,8 @@ export declare const LNN_CHANNEL_SECTIONS: readonly ["american", "business", "fe
 export type LnnChannelSection = (typeof LNN_CHANNEL_SECTIONS)[number];
 export declare const LNN_REQUEST_HEADERS: Record<string, string>;
 export declare const LNN_STREAM_HEADERS: Record<string, string>;
+/** Headers for `?renew=1` token mint (JSON). */
+export declare const LNN_RENEW_HEADERS: Record<string, string>;
 export interface LnnCategory {
     id: LnnCategoryId;
     title: string;
@@ -73,5 +75,17 @@ export declare function resolveLnnChannel(request: RequestClient, ref: {
     section?: LnnChannelSection;
     slug: string;
 }): Promise<LnnChannel>;
+/** Build the on-page renew URL used by the Live News Now player (`?renew=1`). */
+export declare function lnnRenewUrl(pageUrl: string): string;
+/** Parse `{"url":"…","expires_in":3600}` (or the same JSON embedded in HTML). */
+export declare function parseLnnRenewResponse(body: string): {
+    url: string;
+    expiresIn: number;
+} | null;
+/**
+ * Mint a fresh signed HLS URL via the channel page's `?renew=1` endpoint.
+ * Returns null when the page does not support renew (legacy JWPlayer embeds).
+ */
+export declare function renewLnnStreamUrl(request: RequestClient, pageUrl: string): Promise<string | null>;
 export declare function extractLnnStreamFromPage(request: RequestClient, pageUrl: string): Promise<LnnStreamInfo>;
 //# sourceMappingURL=client.d.ts.map

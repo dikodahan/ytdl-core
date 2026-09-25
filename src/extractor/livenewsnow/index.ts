@@ -14,10 +14,13 @@ export {
   listLnnCategories,
   lnnCategoryUrl,
   lnnChannelPageUrl,
+  lnnRenewUrl,
   parseCategoryChannelsHtml,
   parseCategoryPageUrl,
   parseChannelPageUrl,
   parseLnnPseudoId,
+  parseLnnRenewResponse,
+  renewLnnStreamUrl,
   resolveLnnChannel,
   unescapeJsString,
 } from "./client";
