@@ -265,8 +265,10 @@ export function parseCategoryChannelsHtml(
 ): LnnChannel[] {
   const byPage = new Map<string, LnnChannel>();
 
+  // Theme mixes `<h3 class="entry-title">` grid cards and `<div class="entry-title">`
+  // sidebar/module cards — Fox Business often only appears in the latter on /american.
   const entryRe =
-    /<h3[^>]*class="[^"]*entry-title[^"]*"[^>]*>\s*<a[^>]+href="([^"]+)"[^>]*(?:title="([^"]*)")?[^>]*>([\s\S]*?)<\/a>/gi;
+    /<(?:h3|div)[^>]*class="[^"]*entry-title[^"]*"[^>]*>\s*<a[^>]+href="([^"]+)"[^>]*(?:title="([^"]*)")?[^>]*>([\s\S]*?)<\/a>/gi;
   let m: RegExpExecArray | null;
   while ((m = entryRe.exec(html))) {
     const href = absUrl(m[1]!, pageUrl);
@@ -296,17 +298,66 @@ export function parseCategoryChannelsHtml(
   return [...byPage.values()];
 }
 
+/** Collect `/category/{id}/page/N` links from archive HTML (WordPress pagination). */
+export function categoryArchivePageUrls(html: string, categoryId: LnnCategoryId): string[] {
+  const root = lnnCategoryUrl(categoryId);
+  const pages = new Set<string>([root]);
+  const re = new RegExp(
+    `${LNN_ORIGIN.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}/category/${categoryId}/page/(\\d+)`,
+    "gi",
+  );
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html))) {
+    const n = Number(m[1]);
+    if (Number.isFinite(n) && n >= 2 && n <= 50) {
+      pages.add(`${root}/page/${n}`);
+    }
+  }
+  return [...pages].sort((a, b) => {
+    const pageOf = (u: string) => {
+      const mm = u.match(/\/page\/(\d+)\/?$/i);
+      return mm ? Number(mm[1]) : 1;
+    };
+    return pageOf(a) - pageOf(b);
+  });
+}
+
 export async function discoverLnnCategoryChannels(
   request: RequestClient,
   categoryId: LnnCategoryId,
 ): Promise<LnnChannel[]> {
-  const pageUrl = lnnCategoryUrl(categoryId);
-  const html = await request.text(pageUrl, { headers: { ...LNN_REQUEST_HEADERS } });
-  const channels = parseCategoryChannelsHtml(html, categoryId, pageUrl);
-  if (!channels.length) {
+  const byPage = new Map<string, LnnChannel>();
+  const rootUrl = lnnCategoryUrl(categoryId);
+  const firstHtml = await request.text(rootUrl, { headers: { ...LNN_REQUEST_HEADERS } });
+  const pageUrls = categoryArchivePageUrls(firstHtml, categoryId);
+
+  for (const pageUrl of pageUrls) {
+    let html: string;
+    try {
+      html =
+        pageUrl === rootUrl
+          ? firstHtml
+          : await request.text(pageUrl, { headers: { ...LNN_REQUEST_HEADERS } });
+    } catch {
+      // Theme often emits stale `/page/N` links that 404 — skip and keep what we have.
+      continue;
+    }
+    for (const ch of parseCategoryChannelsHtml(html, categoryId, pageUrl)) {
+      const existing = byPage.get(ch.pageUrl);
+      if (!existing) {
+        byPage.set(ch.pageUrl, ch);
+        continue;
+      }
+      for (const id of ch.categoryIds) {
+        if (!existing.categoryIds.includes(id)) existing.categoryIds.push(id);
+      }
+    }
+  }
+
+  if (!byPage.size) {
     throw new Error(`livenewsnow: no channels found in category ${categoryId}`);
   }
-  return channels;
+  return [...byPage.values()];
 }
 
 export async function discoverAllLnnChannels(request: RequestClient): Promise<LnnChannel[]> {

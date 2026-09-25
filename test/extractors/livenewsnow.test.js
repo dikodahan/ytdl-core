@@ -66,7 +66,7 @@ describe("livenewsnow helpers", () => {
     assert.match(extractSignedStreamUrl(html), /foxbusiness\/index\.m3u8\?token=t&expires=1&sig=s/);
   });
 
-  it("parses category channel cards", () => {
+  it("parses category channel cards from h3 and div entry titles", () => {
     const html = `
       <h3 class="entry-title td-module-title">
         <a href="https://www.livenewsnow.com/featured/foxnews.html" title="Fox News Live Stream">Fox News Live Stream</a>
@@ -74,14 +74,22 @@ describe("livenewsnow helpers", () => {
       <h3 class="entry-title td-module-title">
         <a href="https://www.livenewsnow.com/american/cnbc.html" title="CNBC (America)">CNBC (America)</a>
       </h3>
+      <div class="entry-title td-module-title">
+        <a href="https://www.livenewsnow.com/business/fox-business-network-fbn.html" title="Fox Business Live Stream">Fox Business Live Stream</a>
+      </div>
       <h3 class="entry-title td-module-title">
         <a href="https://www.livenewsnow.com/updates/some-article.html" title="Article">Article</a>
       </h3>
     `;
     const channels = parseCategoryChannelsHtml(html, "american");
-    assert.equal(channels.length, 2);
+    assert.equal(channels.length, 3);
     assert.ok(channels.some(c => c.id === "foxnews" && c.section === "featured"));
     assert.ok(channels.some(c => c.id === "cnbc" && c.section === "american"));
+    assert.ok(
+      channels.some(
+        c => c.id === "fox-business-network-fbn" && c.section === "business",
+      ),
+    );
   });
 });
 
@@ -134,6 +142,26 @@ describe("livenewsnow live", { timeout: 90_000 }, () => {
     );
     assert.ok(fox, "expected foxnews in american listing");
     assert.match(fox.url, /^livenewsnow:/);
+  });
+
+  it("lists every channel across categories by default", async () => {
+    const result = await listVideos("livenewsnow:categories", {
+      service: "livenewsnow",
+    });
+    assert.equal(result.extractor, "livenewsnow");
+    assert.ok(result.entries.length >= 10);
+    const foxNews = result.entries.find(
+      e => e.display_id === "foxnews" || e.id === "foxnews" || /foxnews/i.test(e.url || ""),
+    );
+    const foxBiz = result.entries.find(
+      e =>
+        e.id === "fox-business-network-fbn" ||
+        e.display_id === "fox-business-network-fbn" ||
+        /fox-business/i.test(e.url || "") ||
+        /fox business/i.test(e.title || ""),
+    );
+    assert.ok(foxNews, "expected foxnews in all-categories listing");
+    assert.ok(foxBiz, "expected Fox Business in all-categories listing");
   });
 
   it("extracts signed HLS for livenewsnow:foxnews", async () => {

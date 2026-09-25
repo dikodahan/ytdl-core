@@ -65,6 +65,8 @@ export declare function parseChannelMeta(html: string, fallbackTitle: string): {
 };
 /** Parse channel cards from a category archive page. */
 export declare function parseCategoryChannelsHtml(html: string, categoryId: LnnCategoryId, pageUrl?: string): LnnChannel[];
+/** Collect `/category/{id}/page/N` links from archive HTML (WordPress pagination). */
+export declare function categoryArchivePageUrls(html: string, categoryId: LnnCategoryId): string[];
 export declare function discoverLnnCategoryChannels(request: RequestClient, categoryId: LnnCategoryId): Promise<LnnChannel[]>;
 export declare function discoverAllLnnChannels(request: RequestClient): Promise<LnnChannel[]>;
 export declare function resolveLnnChannel(request: RequestClient, ref: {

@@ -714,18 +714,19 @@ export const LIST_URL_USAGE: Record<string, UrlUsageGuide> = {
   },
   livenewsnow: {
     usage:
-      "Paste a category URL (`/category/american`, `/category/business`) or `livenewsnow:categories` / `livenewsnow:american` to list channel IDs.",
+      "Omit `url` (or paste `livenewsnow:categories` / site home) to list every channel across american + business. Or paste a single category URL / `livenewsnow:american`.",
     examples: [
+      "livenewsnow:categories",
+      "https://www.livenewsnow.com/",
       "https://www.livenewsnow.com/category/american",
       "https://www.livenewsnow.com/category/business",
-      "livenewsnow:categories",
-      "livenewsnow:american",
     ],
-    defaultUrl: "https://www.livenewsnow.com/category/american",
+    // All categories — single-category defaults omit e.g. Fox Business (business).
+    defaultUrl: "livenewsnow:categories",
     categoriesDefaultUrl: "https://www.livenewsnow.com/",
     categoriesIndexUrl: "https://www.livenewsnow.com/",
     notes:
-      "Category listing returns channel slugs (`display_id`, e.g. `foxnews`). Extract with `livenewsnow:{slug}` or the channel page URL. `listCategories` returns `american` and `business`.",
+      "Default list merges american + business category archives (including paginated pages). Entries use channel slugs (`display_id`, e.g. `foxnews`, `fox-business-network-fbn`). Extract with `livenewsnow:{slug}` or the channel page URL.",
   },
   "kaltura-ott": {
     usage:

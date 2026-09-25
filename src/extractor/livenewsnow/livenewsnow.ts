@@ -57,7 +57,7 @@ export class LiveNewsNowIE extends InfoExtractor {
       options: [],
       status: "ready",
       notes:
-        "Discover channels via `https://www.livenewsnow.com/category/american` or `/category/business`, then extract `livenewsnow:foxnews` / channel page URLs. Streams include signed query params (`token`/`expires`/`sig` or `sec*`/`newz*`).",
+        "Discover all channels via `livenewsnow:categories` (default list) or a single `/category/american` / `/category/business` page, then extract `livenewsnow:foxnews` / channel page URLs. Streams include signed query params (`token`/`expires`/`sig` or `sec*`/`newz*`).",
       listSupported: true,
     };
   }

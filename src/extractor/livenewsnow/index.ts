@@ -6,6 +6,7 @@ export {
   CHANNEL_PAGE_URL,
   CATEGORY_PAGE_URL,
   SIGNED_HLS_URL,
+  categoryArchivePageUrls,
   discoverAllLnnChannels,
   discoverLnnCategoryChannels,
   extractLnnStreamFromPage,
