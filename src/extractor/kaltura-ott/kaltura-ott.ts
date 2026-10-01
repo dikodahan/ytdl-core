@@ -101,6 +101,14 @@ export class KalturaOttIE extends InfoExtractor {
           description: "Days of EPG to fetch when listing or extracting programs",
           default: 4,
         },
+        {
+          key: "forceAndroidTv",
+          label: "Force Android TV",
+          type: "boolean",
+          description:
+            "Send platform=STB on serveByDevice (Android TV / living-room profile). Useful for Cellcom lineups that differ on TV vs mobile.",
+          default: false,
+        },
       ],
       notes:
         "Use pseudo-URLs like `kaltura-ott:reshet:live:2605018` or `kaltura-ott:cellcom:epg:3728`. Built-in presets: reshet (5031), cellcom (3197).",
@@ -132,7 +140,18 @@ export class KalturaOttIE extends InfoExtractor {
         `Unknown Kaltura OTT partner "${partnerKey}". Use reshet, cellcom, or a numeric partner id.`,
       );
     }
-    const overrides = this.params.extractorArgs?.kalturaOtt as Record<string, unknown> | undefined;
+    const args = this.params.extractorArgs || {};
+    const nested =
+      args.kalturaOtt && typeof args.kalturaOtt === "object"
+        ? (args.kalturaOtt as Record<string, unknown>)
+        : {};
+    const overrides: Record<string, unknown> = { ...nested };
+    if (overrides.forceAndroidTv == null && args.forceAndroidTv != null) {
+      overrides.forceAndroidTv = args.forceAndroidTv;
+    }
+    if (overrides.platform == null && args.platform != null) {
+      overrides.platform = args.platform;
+    }
     return mergePresetOverrides(base, overrides);
   }
 

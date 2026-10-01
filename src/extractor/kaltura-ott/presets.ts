@@ -114,6 +114,25 @@ function buildGenericPreset(partnerId: number): KalturaOttPartnerPreset {
   };
 }
 
+function isTruthyFlag(value: unknown): boolean {
+  return value === true || value === 1 || value === "1" || value === "true";
+}
+
+/** Normalize Stream Lab / API platform values onto Kaltura serveByDevice platforms. */
+export function resolveOttPlatform(
+  raw: unknown,
+  opts: { forceAndroidTv?: unknown } = {},
+): string | undefined {
+  if (isTruthyFlag(opts.forceAndroidTv)) return "STB";
+  if (typeof raw !== "string") return undefined;
+  const platform = raw.trim();
+  if (!platform) return undefined;
+  if (/^(android\s*tv|androidtv|atv|tv|living.?room|fire.?tv|stb)$/i.test(platform)) {
+    return "STB";
+  }
+  return platform;
+}
+
 export function mergePresetOverrides(
   preset: KalturaOttPartnerPreset,
   overrides: Record<string, unknown> | undefined,
@@ -124,6 +143,10 @@ export function mergePresetOverrides(
     typeof o.applicationName === "string" && o.applicationName.trim()
       ? o.applicationName.trim()
       : undefined;
+  const platform = resolveOttPlatform(o.platform, { forceAndroidTv: o.forceAndroidTv });
+  const shouldPatchDevice = Boolean(
+    applicationName || platform || (preset.deviceConfig && isTruthyFlag(o.forceAndroidTv)),
+  );
   return {
     ...preset,
     ...(typeof o.apiHost === "string" ? { apiHost: o.apiHost } : {}),
@@ -135,12 +158,15 @@ export function mergePresetOverrides(
     ...(typeof o.channelFilterKsql === "string" ? { channelFilterKsql: o.channelFilterKsql } : {}),
     ...(o.epgStyle === "cache" || o.epgStyle === "search" ? { epgStyle: o.epgStyle } : {}),
     ...(typeof o.defaultEpgDays === "number" ? { defaultEpgDays: o.defaultEpgDays } : {}),
-    ...(applicationName
+    ...(shouldPatchDevice
       ? {
           deviceConfig: {
-            applicationName,
+            applicationName:
+              applicationName ||
+              preset.deviceConfig?.applicationName ||
+              "com.cellcom.cellcomtv",
             clientVersion: preset.deviceConfig?.clientVersion || "1.0.0",
-            platform: preset.deviceConfig?.platform || "STB",
+            platform: platform || preset.deviceConfig?.platform || "STB",
             tag: preset.deviceConfig?.tag || "default",
           },
         }

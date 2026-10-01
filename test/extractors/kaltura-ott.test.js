@@ -34,6 +34,14 @@ describe("kaltura-ott presets", () => {
     assert.equal(configured.deviceConfig.applicationName, "com.kaltura.reshet.atv");
     assert.equal(configured.partnerId, 5031);
   });
+
+  it("forceAndroidTv switches Cellcom device platform to STB", () => {
+    const preset = resolvePartnerPreset("cellcom");
+    assert.equal(preset.deviceConfig.platform, "Android");
+    const configured = mergePresetOverrides(preset, { forceAndroidTv: true });
+    assert.equal(configured.deviceConfig.platform, "STB");
+    assert.equal(configured.deviceConfig.applicationName, "com.cellcom.cellcomtv");
+  });
 });
 
 describe("kaltura-ott helpers", () => {
@@ -81,6 +89,25 @@ describe("kaltura-ott extractor routing", () => {
     assert.throws(
       () => resolveListExtractor("kaltura-ott:reshet:live:2605018", "kaltura-ott"),
       /not a supported listing page/,
+    );
+  });
+});
+
+describe("cellcom extractor routing", () => {
+  it("exposes Force Android TV option metadata", () => {
+    const { CellcomIE } = require("../../lib/extractor/cellcom/cellcom");
+    const force = CellcomIE.getInfo().options.find(option => option.key === "forceAndroidTv");
+    assert.equal(force?.type, "boolean");
+    assert.equal(force?.default, false);
+  });
+
+  it("matches live extract and channel list URLs", () => {
+    assert.ok(resolveExtractor("cellcom:live:803437", "cellcom"));
+    assert.ok(resolveListExtractor("cellcom:channels", "cellcom"));
+    assert.ok(resolveListExtractor("cellcom", "cellcom"));
+    assert.throws(
+      () => resolveExtractor("cellcom:channels", "cellcom"),
+      /not valid for service/,
     );
   });
 });
