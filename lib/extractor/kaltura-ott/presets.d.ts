@@ -34,5 +34,9 @@ export interface KalturaOttPartnerPreset {
 }
 export declare const KALTURA_OTT_PRESETS: Record<string, KalturaOttPartnerPreset>;
 export declare function resolvePartnerPreset(partnerKey: string): KalturaOttPartnerPreset | null;
+/** Normalize Stream Lab / API platform values onto Kaltura serveByDevice platforms. */
+export declare function resolveOttPlatform(raw: unknown, opts?: {
+    forceAndroidTv?: unknown;
+}): string | undefined;
 export declare function mergePresetOverrides(preset: KalturaOttPartnerPreset, overrides: Record<string, unknown> | undefined): KalturaOttPartnerPreset;
 //# sourceMappingURL=presets.d.ts.map
