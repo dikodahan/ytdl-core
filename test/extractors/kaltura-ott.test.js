@@ -103,12 +103,34 @@ describe("cellcom extractor routing", () => {
 
   it("matches live extract and channel list URLs", () => {
     assert.ok(resolveExtractor("cellcom:live:803437", "cellcom"));
+    assert.ok(resolveExtractor("cellcom:live:4559653", "cellcom"));
     assert.ok(resolveListExtractor("cellcom:channels", "cellcom"));
     assert.ok(resolveListExtractor("cellcom", "cellcom"));
     assert.throws(
       () => resolveExtractor("cellcom:channels", "cellcom"),
       /not valid for service/,
     );
+  });
+
+  it("lists channels with cellcom:live entry URLs", { timeout: 30_000 }, async () => {
+    const result = await listVideos("cellcom:channels", { service: "cellcom", limit: 5 });
+    assert.equal(result.extractor, "cellcom");
+    assert.ok(result.entries.length >= 1);
+    for (const entry of result.entries) {
+      assert.match(entry.url, /^cellcom:live:\d+$/);
+    }
+  });
+
+  it("extracts stream link for cellcom:live:4559653", { timeout: 45_000 }, async () => {
+    const info = await extractInfo("cellcom:live:4559653", { service: "cellcom" });
+    assert.equal(info.extractor, "cellcom");
+    assert.equal(info.live_status, "is_live");
+    assert.equal(info.id, "4559653");
+    assert.ok(info.formats?.length >= 1);
+    const hls = info.formats.find(f => f.isHLS || /\.m3u8/i.test(f.url));
+    assert.ok(hls?.url, "expected HLS stream URL");
+    assert.match(hls.url, /\.m3u8/i);
+    assert.match(hls.url, /cellcom\.co\.il|kaltura\.com/i);
   });
 });
 
@@ -173,15 +195,17 @@ describe("kaltura-ott live API", () => {
     assert.match(result.entries[0].url, /^kaltura-ott:cellcom:live:\d+$/);
   });
 
-  it("reports Cellcom subscription requirements for anonymous playback", { timeout: 30_000 }, async () => {
-    await assert.rejects(
-      () =>
-        extractInfo("kaltura-ott:cellcom:live:803437", {
-          service: "kaltura-ott",
-        }),
-      error =>
-        error?.code === "KALTURA_OTT_SUBSCRIPTION_REQUIRED" &&
-        /requires a subscription/i.test(error.message),
-    );
+  it("falls back to Cellcom mediaFile HLS when playback context is NotEntitled", {
+    timeout: 45_000,
+  }, async () => {
+    const info = await extractInfo("kaltura-ott:cellcom:live:4559653", {
+      service: "kaltura-ott",
+    });
+    assert.equal(info.extractor, "kaltura-ott");
+    assert.equal(info.id, "4559653");
+    assert.ok(info.formats?.length >= 1);
+    const hls = info.formats.find(f => f.isHLS || /\.m3u8/i.test(f.url));
+    assert.ok(hls?.url);
+    assert.match(hls.url, /livetv.*cellcom\.co\.il.*\.m3u8/i);
   });
 });

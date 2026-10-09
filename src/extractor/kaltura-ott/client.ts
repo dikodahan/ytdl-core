@@ -534,11 +534,43 @@ export function pickStreamFormats(files: KalturaOttMediaFile[] | undefined): {
 } {
   let hls: string | null = null;
   let dash: string | null = null;
-  for (const f of files || []) {
+  // Prefer HTTPS catalog URLs (Cellcom publishes both http://…:8080 and https:// hosts).
+  const ordered = [...(files || [])].sort((a, b) => {
+    const aHttps = a.url?.startsWith("https://") ? 0 : 1;
+    const bHttps = b.url?.startsWith("https://") ? 0 : 1;
+    return aHttps - bHttps;
+  });
+  for (const f of ordered) {
     if (!f.url) continue;
     const type = (f.type || "").toUpperCase();
-    if (!hls && (type.includes("HLS") || f.url.includes(".m3u8"))) hls = f.url;
+    if (!hls && (type.includes("HLS") || type.includes("LIVE") || f.url.includes(".m3u8"))) {
+      hls = f.url;
+    }
     if (!dash && (type.includes("DASH") || f.url.includes(".mpd"))) dash = f.url;
   }
   return { hls, dash };
+}
+
+/** Collect unique playable mediaFile URLs (HLS / DASH), HTTPS first. */
+export function collectMediaFileStreamUrls(files: KalturaOttMediaFile[] | undefined): Array<{
+  url: string;
+  type: string;
+}> {
+  const seen = new Set<string>();
+  const out: Array<{ url: string; type: string }> = [];
+  const ordered = [...(files || [])].sort((a, b) => {
+    const aHttps = a.url?.startsWith("https://") ? 0 : 1;
+    const bHttps = b.url?.startsWith("https://") ? 0 : 1;
+    return aHttps - bHttps;
+  });
+  for (const f of ordered) {
+    if (!f.url || seen.has(f.url)) continue;
+    const type = (f.type || "").toUpperCase();
+    const isHls = type.includes("HLS") || type.includes("LIVE") || f.url.includes(".m3u8");
+    const isDash = type.includes("DASH") || f.url.includes(".mpd");
+    if (!isHls && !isDash) continue;
+    seen.add(f.url);
+    out.push({ url: f.url, type: type || (isDash ? "DASH" : "HLS") });
+  }
+  return out;
 }

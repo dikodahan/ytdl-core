@@ -26,7 +26,7 @@
     "Pawel Rucinski (https://github.com/Roki100)",
     "Alexander Paolini (https://github.com/Million900o)"
   ],
-  "packageManager": "pnpm@10.20.0",
+  "packageManager": "pnpm@12.11.1",
   "main": "./lib/compat/ytdl-core.js",
   "types": "./lib/compat/ytdl-core.d.ts",
   "exports": {
@@ -73,7 +73,7 @@
     "http-cookie-agent": "^8.0.0",
     "m3u8stream": "^0.8.6",
     "tough-cookie": "^6.0.2",
-    "undici": "^8.10.1"
+    "undici": "^8.11.2"
   },
   "optionalDependencies": {
     "cycletls": "^2.0.5"
@@ -81,11 +81,11 @@
   "devDependencies": {
     "@types/node": "^22.19.21",
     "prettier": "^3.9.5",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=22.19.0",
-    "pnpm": ">=10"
+    "pnpm": ">=12"
   },
   "license": "MIT",
   "funding": "https://github.com/distubejs/ytdl-core?sponsor"

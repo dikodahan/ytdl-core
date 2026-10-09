@@ -84,5 +84,10 @@ export declare function pickStreamFormats(files: KalturaOttMediaFile[] | undefin
     hls: string | null;
     dash: string | null;
 };
+/** Collect unique playable mediaFile URLs (HLS / DASH), HTTPS first. */
+export declare function collectMediaFileStreamUrls(files: KalturaOttMediaFile[] | undefined): Array<{
+    url: string;
+    type: string;
+}>;
 export {};
 //# sourceMappingURL=client.d.ts.map

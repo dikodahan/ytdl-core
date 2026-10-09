@@ -38,6 +38,19 @@ function toKalturaOttUrl(url: string): string {
   return query ? `${path}?${query}` : kind ? path : `${path}:channels`;
 }
 
+/** Map delegated kaltura-ott:cellcom:* entry URLs back to cellcom:* for this site. */
+function toCellcomUrl(url: string): string {
+  const trimmed = url.trim();
+  const rewritten = trimmed.replace(/^kaltura-ott:cellcom(?=:(?:live|program|epg|lineup|channels|categories)(?::|$)|$)/i, "cellcom");
+  return rewritten === trimmed && /^kaltura-ott:cellcom$/i.test(trimmed) ? "cellcom:channels" : rewritten;
+}
+
+function rewriteCellcomEntries<T extends { url?: string | null }>(entries: T[]): T[] {
+  return entries.map(entry =>
+    entry.url ? { ...entry, url: toCellcomUrl(entry.url) } : entry,
+  );
+}
+
 export class CellcomIE extends InfoExtractor {
   static IE_NAME = "cellcom";
   static IE_DESC = "Cellcom TV — Kaltura OTT live channels, EPG, and catch-up";
@@ -150,6 +163,7 @@ export class CellcomIE extends InfoExtractor {
       ...result,
       extractor: CellcomIE.IE_NAME,
       webpage_url: target.startsWith("cellcom") ? target : "cellcom:channels",
+      entries: rewriteCellcomEntries(result.entries || []),
     };
   }
 
@@ -164,6 +178,7 @@ export class CellcomIE extends InfoExtractor {
       ...result,
       extractor: CellcomIE.IE_NAME,
       webpage_url: target,
+      entries: rewriteCellcomEntries(result.entries || []),
     };
   }
 }

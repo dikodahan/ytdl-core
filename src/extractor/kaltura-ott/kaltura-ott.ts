@@ -7,6 +7,8 @@ import { baseInfo, dashFormat, hlsFormat } from "../_shared/helpers";
 import {
   KalturaOttClient,
   KalturaOttAuthenticationError,
+  KalturaOttSubscriptionRequiredError,
+  collectMediaFileStreamUrls,
   pickChannelLogo,
   type KalturaOttCredentials,
   type KalturaOttLiveAsset,
@@ -207,7 +209,20 @@ export class KalturaOttIE extends InfoExtractor {
     assetId: number,
   ): Promise<InfoDict> {
     const asset = await client.getLiveAsset(assetId);
-    const sources = await client.getLivePlayback(assetId);
+    let sources: Awaited<ReturnType<KalturaOttClient["getLivePlayback"]>> = [];
+    let subscriptionBlocked = false;
+    try {
+      sources = await client.getLivePlayback(assetId);
+    } catch (err) {
+      // Cellcom (and similar) often still expose catalog mediaFile HLS URLs when
+      // anonymous getPlaybackContext is NotEntitled — use those as the stream link.
+      if (err instanceof KalturaOttSubscriptionRequiredError) {
+        subscriptionBlocked = true;
+      } else {
+        throw err;
+      }
+    }
+
     const formats: Format[] = [];
     for (const source of sources) {
       if (!source.url) continue;
@@ -218,7 +233,21 @@ export class KalturaOttIE extends InfoExtractor {
         formats.push(hlsFormat(source.url, `hls-${formats.length + 1}`));
       }
     }
+
     if (!formats.length) {
+      for (const file of collectMediaFileStreamUrls(asset.mediaFiles)) {
+        if (file.type.includes("DASH") || file.url.includes(".mpd")) {
+          formats.push(dashFormat(file.url, `dash-file-${formats.length + 1}`));
+        } else {
+          formats.push(hlsFormat(file.url, `hls-file-${formats.length + 1}`));
+        }
+      }
+    }
+
+    if (!formats.length) {
+      if (subscriptionBlocked) {
+        throw new KalturaOttSubscriptionRequiredError(Boolean(this.credentials()));
+      }
       throw new Error(`Kaltura OTT live asset ${assetId} has no playable streams`);
     }
 
