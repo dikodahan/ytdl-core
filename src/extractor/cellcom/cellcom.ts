@@ -88,12 +88,12 @@ export class CellcomIE extends InfoExtractor {
           label: "Force Android TV",
           type: "boolean",
           description:
-            "Use the Android TV / STB device profile (platform=STB) instead of the default mobile Android profile when listing channels.",
+            "List the Android TV / living-room catalog (ChannelNumber LCN search). Includes big-screen-only channels such as ספורט 1–4 that are missing from the mobile lineup.",
           default: false,
         },
       ],
       notes:
-        "List with `cellcom:channels`. Extract with `cellcom:live:{id}`. Check Force Android TV when the TV app lineup differs from mobile.",
+        "List with `cellcom:channels`. Extract with `cellcom:live:{id}`. Check Force Android TV to discover TV-only lineup IDs.",
       listSupported: true,
     };
   }

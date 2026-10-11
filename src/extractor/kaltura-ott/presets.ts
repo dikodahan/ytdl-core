@@ -34,6 +34,13 @@ export interface KalturaOttPartnerPreset {
   /** Optional device bootstrap before login (Reshet ATV). */
   deviceConfig?: KalturaOttDeviceConfig;
   defaultEpgDays: number;
+  /**
+   * When true, list live channels via ChannelNumber meta search (Android TV /
+   * big-screen catalog) instead of only the mobile default lineup. Cellcom's
+   * CharletonPremium sports channels (e.g. ספורט 1–4) are absent from lineup
+   * 353891 but appear in the living-room LCN catalog.
+   */
+  forceAndroidTv?: boolean;
 }
 
 const CELLCOM_CHANNEL_KSQL =
@@ -143,9 +150,10 @@ export function mergePresetOverrides(
     typeof o.applicationName === "string" && o.applicationName.trim()
       ? o.applicationName.trim()
       : undefined;
+  const forceAndroidTv = isTruthyFlag(o.forceAndroidTv);
   const platform = resolveOttPlatform(o.platform, { forceAndroidTv: o.forceAndroidTv });
   const shouldPatchDevice = Boolean(
-    applicationName || platform || (preset.deviceConfig && isTruthyFlag(o.forceAndroidTv)),
+    applicationName || platform || (preset.deviceConfig && forceAndroidTv),
   );
   return {
     ...preset,
@@ -158,6 +166,7 @@ export function mergePresetOverrides(
     ...(typeof o.channelFilterKsql === "string" ? { channelFilterKsql: o.channelFilterKsql } : {}),
     ...(o.epgStyle === "cache" || o.epgStyle === "search" ? { epgStyle: o.epgStyle } : {}),
     ...(typeof o.defaultEpgDays === "number" ? { defaultEpgDays: o.defaultEpgDays } : {}),
+    ...(forceAndroidTv ? { forceAndroidTv: true } : {}),
     ...(shouldPatchDevice
       ? {
           deviceConfig: {

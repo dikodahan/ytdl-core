@@ -31,6 +31,13 @@ export interface KalturaOttPartnerPreset {
     /** Optional device bootstrap before login (Reshet ATV). */
     deviceConfig?: KalturaOttDeviceConfig;
     defaultEpgDays: number;
+    /**
+     * When true, list live channels via ChannelNumber meta search (Android TV /
+     * big-screen catalog) instead of only the mobile default lineup. Cellcom's
+     * CharletonPremium sports channels (e.g. ספורט 1–4) are absent from lineup
+     * 353891 but appear in the living-room LCN catalog.
+     */
+    forceAndroidTv?: boolean;
 }
 export declare const KALTURA_OTT_PRESETS: Record<string, KalturaOttPartnerPreset>;
 export declare function resolvePartnerPreset(partnerKey: string): KalturaOttPartnerPreset | null;

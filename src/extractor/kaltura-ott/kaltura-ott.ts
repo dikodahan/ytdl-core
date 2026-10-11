@@ -108,7 +108,7 @@ export class KalturaOttIE extends InfoExtractor {
           label: "Force Android TV",
           type: "boolean",
           description:
-            "Send platform=STB on serveByDevice (Android TV / living-room profile). Useful for Cellcom lineups that differ on TV vs mobile.",
+            "Use the Android TV / living-room catalog (ChannelNumber LCN search + STB device profile). Includes Cellcom big-screen-only channels such as ספורט 1–4 that are missing from the mobile lineup.",
           default: false,
         },
       ],
@@ -235,7 +235,9 @@ export class KalturaOttIE extends InfoExtractor {
     }
 
     if (!formats.length) {
-      for (const file of collectMediaFileStreamUrls(asset.mediaFiles)) {
+      for (const file of collectMediaFileStreamUrls(asset.mediaFiles, {
+        preferBigscreen: Boolean(preset.forceAndroidTv),
+      })) {
         if (file.type.includes("DASH") || file.url.includes(".mpd")) {
           formats.push(dashFormat(file.url, `dash-file-${formats.length + 1}`));
         } else {
@@ -392,7 +394,9 @@ export class KalturaOttIE extends InfoExtractor {
     }
 
     const lineupId = resolveLineupId(parsed, preset);
-    const channels = await client.listChannels(lineupId);
+    const channels = preset.forceAndroidTv
+      ? await client.listLiveChannelsByLcn()
+      : await client.listChannels(lineupId);
     let entries = channels
       .filter(c => c.id != null)
       .map(c => channelListEntry(partner, c));
@@ -401,8 +405,10 @@ export class KalturaOttIE extends InfoExtractor {
     return {
       extractor: KalturaOttIE.IE_NAME,
       webpage_url: url,
-      playlist_id: String(lineupId),
-      playlist_title: `${preset.lineups.find(l => l.id === lineupId)?.title || partner} channels`,
+      playlist_id: preset.forceAndroidTv ? `${lineupId}-android-tv` : String(lineupId),
+      playlist_title: preset.forceAndroidTv
+        ? `${partner} Android TV channels`
+        : `${preset.lineups.find(l => l.id === lineupId)?.title || partner} channels`,
       page: 1,
       entries,
       next_page_url: null,

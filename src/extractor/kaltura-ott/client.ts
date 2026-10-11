@@ -299,21 +299,79 @@ export class KalturaOttClient {
     return result.objects || [];
   }
 
+  /**
+   * Android TV / living-room catalog: enumerate `KalturaLiveAsset` rows by
+   * ChannelNumber meta. Cellcom's mobile lineup omits CharletonPremium sports
+   * (ספורט 1–4 / 6) that only publish HLS_BIGSCREEN media files.
+   */
+  async listLiveChannelsByLcn(options: { maxLcn?: number; step?: number } = {}): Promise<
+    KalturaOttLiveAsset[]
+  > {
+    const maxLcn = options.maxLcn ?? 400;
+    const step = options.step ?? 50;
+    const byId = new Map<number, KalturaOttLiveAsset>();
+
+    for (let start = 0; start < maxLcn; start += step) {
+      const end = start + step;
+      const result = await this.postApi<KalturaListResponse>(
+        "/api_v3/service/asset/action/list",
+        {
+          apiVersion: this.preset.apiVersion,
+          clientTag: this.preset.clientTag,
+          filter: {
+            objectType: "KalturaSearchAssetFilter",
+            kSql: `(and ChannelNumber>='${start}' ChannelNumber<'${end}')`,
+          },
+          pager: {
+            objectType: "KalturaFilterPager",
+            pageIndex: 1,
+            pageSize: 500,
+          },
+        },
+      );
+      for (const asset of result.objects || []) {
+        if (asset.objectType && asset.objectType !== "KalturaLiveAsset") continue;
+        if (asset.id == null) continue;
+        if (!passesCellcomLiveExclusions(asset, this.preset.channelFilterKsql)) continue;
+        byId.set(asset.id, asset);
+      }
+    }
+
+    return [...byId.values()].sort((a, b) => {
+      const aNum = Number(a.metas?.ChannelNumber?.value ?? Number.POSITIVE_INFINITY);
+      const bNum = Number(b.metas?.ChannelNumber?.value ?? Number.POSITIVE_INFINITY);
+      if (aNum !== bNum) return aNum - bNum;
+      return (a.id || 0) - (b.id || 0);
+    });
+  }
+
   async getLiveAsset(assetId: number): Promise<KalturaOttLiveAsset> {
-    const channels = await this.listChannels(this.preset.defaultLineupId, 1000);
+    // Prefer asset/get — Cellcom's asset/list idIn filter returns unrelated
+    // media/program rows and was causing wrong VOD titles for live IDs.
+    try {
+      return await this.getAssetById(assetId);
+    } catch {
+      /* fall through to lineup scan */
+    }
+
+    const channels = this.preset.forceAndroidTv
+      ? await this.listLiveChannelsByLcn()
+      : await this.listChannels(this.preset.defaultLineupId, 1000);
     const found = channels.find(c => c.id === assetId);
     if (found) return found;
+    throw new Error(`Kaltura OTT live asset ${assetId} not found`);
+  }
 
-    const result = await this.postApi<KalturaListResponse>("/api_v3/service/asset/action/list", {
-      filter: { objectType: "KalturaAssetFilter", idIn: String(assetId) },
-      pager: { pageIndex: 1, pageSize: 1 },
+  async getAssetById(assetId: number): Promise<KalturaOttLiveAsset> {
+    const asset = await this.postApi<KalturaOttLiveAsset>("/api_v3/service/asset/action/get", {
       apiVersion: this.preset.apiVersion,
       clientTag: this.preset.clientTag,
-      ignoreNull: true,
-      format: 1,
+      id: String(assetId),
+      assetReferenceType: "media",
     });
-    const asset = result.objects?.[0];
-    if (!asset) throw new Error(`Kaltura OTT live asset ${assetId} not found`);
+    if (!asset?.id) {
+      throw new Error(`Kaltura OTT live asset ${assetId} not found`);
+    }
     return asset;
   }
 
@@ -482,6 +540,24 @@ export class KalturaOttClient {
   }
 }
 
+/**
+ * Apply the spirit of Cellcom's channelFilterKsql to LCN-discovered assets
+ * (adult / Netflix / YouTube deep links) when search results omit those fields.
+ */
+function passesCellcomLiveExclusions(
+  asset: KalturaOttLiveAsset,
+  channelFilterKsql: string | undefined,
+): boolean {
+  if (!channelFilterKsql) return true;
+  if (asset.metas?.Is_adult?.value === true || asset.metas?.Is_adult?.value === "1") {
+    return false;
+  }
+  // Deep-link-only rows sometimes appear in broad LCN scans.
+  const name = (asset.name || "").toLowerCase();
+  if (/\bnetflix\b|\byoutube\b|\bamazon\b|\bscreenz\b/.test(name)) return false;
+  return true;
+}
+
 function filterEpgPrograms(
   programs: KalturaOttProgramAsset[],
   unavailableTitle?: string,
@@ -552,13 +628,21 @@ export function pickStreamFormats(files: KalturaOttMediaFile[] | undefined): {
 }
 
 /** Collect unique playable mediaFile URLs (HLS / DASH), HTTPS first. */
-export function collectMediaFileStreamUrls(files: KalturaOttMediaFile[] | undefined): Array<{
+export function collectMediaFileStreamUrls(
+  files: KalturaOttMediaFile[] | undefined,
+  opts: { preferBigscreen?: boolean } = {},
+): Array<{
   url: string;
   type: string;
 }> {
   const seen = new Set<string>();
   const out: Array<{ url: string; type: string }> = [];
   const ordered = [...(files || [])].sort((a, b) => {
+    if (opts.preferBigscreen) {
+      const aBig = (a.type || "").toUpperCase().includes("BIGSCREEN") ? 0 : 1;
+      const bBig = (b.type || "").toUpperCase().includes("BIGSCREEN") ? 0 : 1;
+      if (aBig !== bBig) return aBig - bBig;
+    }
     const aHttps = a.url?.startsWith("https://") ? 0 : 1;
     const bHttps = b.url?.startsWith("https://") ? 0 : 1;
     return aHttps - bHttps;

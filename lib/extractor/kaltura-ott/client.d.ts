@@ -71,7 +71,17 @@ export declare class KalturaOttClient {
     private apiBase;
     private postApi;
     listChannels(lineupId: number, pageSize?: number): Promise<KalturaOttLiveAsset[]>;
+    /**
+     * Android TV / living-room catalog: enumerate `KalturaLiveAsset` rows by
+     * ChannelNumber meta. Cellcom's mobile lineup omits CharletonPremium sports
+     * (ספורט 1–4 / 6) that only publish HLS_BIGSCREEN media files.
+     */
+    listLiveChannelsByLcn(options?: {
+        maxLcn?: number;
+        step?: number;
+    }): Promise<KalturaOttLiveAsset[]>;
     getLiveAsset(assetId: number): Promise<KalturaOttLiveAsset>;
+    getAssetById(assetId: number): Promise<KalturaOttLiveAsset>;
     fetchEpgPrograms(channelRef: string, days: number, channelAssets?: KalturaOttLiveAsset[]): Promise<KalturaOttProgramAsset[]>;
     private fetchEpgCache;
     private fetchEpgSearch;
@@ -85,7 +95,9 @@ export declare function pickStreamFormats(files: KalturaOttMediaFile[] | undefin
     dash: string | null;
 };
 /** Collect unique playable mediaFile URLs (HLS / DASH), HTTPS first. */
-export declare function collectMediaFileStreamUrls(files: KalturaOttMediaFile[] | undefined): Array<{
+export declare function collectMediaFileStreamUrls(files: KalturaOttMediaFile[] | undefined, opts?: {
+    preferBigscreen?: boolean;
+}): Array<{
     url: string;
     type: string;
 }>;
