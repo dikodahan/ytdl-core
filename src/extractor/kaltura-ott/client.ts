@@ -5,11 +5,26 @@ export interface KalturaOttSession {
   ks: string;
   sessionId: string | null;
   expiry: number | null;
+  /** UDID this session was logged in with. */
+  udid?: string;
+  /** Household device name, when the session was re-logged in as a registered device. */
+  deviceName?: string | null;
+}
+
+export interface KalturaOttHouseholdDevice {
+  udid?: string;
+  name?: string;
+  brandId?: number;
+  deviceFamilyId?: number;
+  status?: string;
+  state?: string;
 }
 
 export interface KalturaOttCredentials {
   username: string;
   password: string;
+  /** Optional: force login with this registered household device UDID. */
+  deviceUdid?: string;
 }
 
 export class KalturaOttAuthenticationError extends Error {
@@ -123,6 +138,73 @@ export class KalturaOttClient {
       await this.serveByDevice();
     }
 
+    const bootstrap = await this.loginWithUdid(this.preset.udid);
+    this.session = bootstrap;
+    if (!this.credentials) return bootstrap;
+
+    // Explicit per-request device override wins over device discovery.
+    if (this.credentials.deviceUdid) {
+      try {
+        const session = await this.loginWithUdid(this.credentials.deviceUdid);
+        this.session = session;
+        return session;
+      } catch {
+        /* fall through to household device discovery */
+      }
+    }
+
+    // Authenticated playback (getPlaybackContext) is device-bound: a login
+    // made with an unregistered UDID passes catalog calls but playback fails
+    // with "Device not in household". Discover the subscriber's registered
+    // household devices (using the bootstrap session) and re-login with an
+    // activated device's UDID. Credentials arrive per-request only — nothing
+    // is stored or embedded. Any failure keeps the bootstrap session.
+    try {
+      const devices = await this.listHouseholdDevices(bootstrap.ks);
+      for (const device of devices) {
+        if (!device.udid || device.udid === bootstrap.udid) continue;
+        const status = (device.status || device.state || "").toUpperCase();
+        if (status && status !== "ACTIVATED") continue;
+        try {
+          const session = await this.loginWithUdid(device.udid);
+          session.deviceName = device.name || null;
+          this.session = session;
+          return session;
+        } catch {
+          /* try the next registered device */
+        }
+      }
+    } catch {
+      /* keep the bootstrap session */
+    }
+    return bootstrap;
+  }
+
+  /** Drop the cached session (e.g. after a KS-expired response). */
+  invalidateSession(): void {
+    this.session = null;
+  }
+
+  private async listHouseholdDevices(ks: string): Promise<KalturaOttHouseholdDevice[]> {
+    const url = `${this.apiBase()}/api_v3/service/householddevice/action/list`;
+    const data = await this.request.json<
+      KalturaApiEnvelope<{ objects?: KalturaOttHouseholdDevice[] }>
+    >(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": this.preset.userAgent,
+      },
+      body: JSON.stringify({
+        ks,
+        apiVersion: this.preset.apiVersion,
+        clientTag: this.preset.clientTag,
+      }),
+    });
+    return data.result?.objects || [];
+  }
+
+  private async loginWithUdid(udid: string): Promise<KalturaOttSession> {
     const authenticated = Boolean(this.credentials);
     const serviceName = this.preset.apiVersion.startsWith("5.") ? "OTTUser" : "ottuser";
     const loginPath = authenticated
@@ -132,7 +214,7 @@ export class KalturaOttClient {
     const loginUrl = `${this.preset.apiHost}${loginPath}`;
     const body: Record<string, unknown> = {
       partnerId: this.preset.partnerId,
-      udid: this.preset.udid,
+      udid,
       apiVersion: this.preset.apiVersion,
     };
     if (this.credentials) {
@@ -186,12 +268,13 @@ export class KalturaOttClient {
       headerValue(res.headers, "x-kaltura-session") ||
       headerValue(res.headers, "X-Kaltura-Session");
 
-    this.session = {
+    return {
       ks,
       sessionId: sessionHeader,
       expiry: result?.loginSession?.expiry ?? result?.expiry ?? null,
+      udid,
+      deviceName: null,
     };
-    return this.session;
   }
 
   private async serveByDevice(): Promise<void> {
@@ -493,6 +576,19 @@ export class KalturaOttClient {
   }
 
   async getLivePlayback(assetId: number): Promise<KalturaPlaybackSource[]> {
+    try {
+      return await this.getLivePlaybackOnce(assetId);
+    } catch (err) {
+      // A KS can be invalidated mid-session (e.g. the same household device
+      // logged in elsewhere) — re-login once and retry.
+      const message = err instanceof Error ? err.message : String(err);
+      if (!/500016|ks expired/i.test(message)) throw err;
+      this.invalidateSession();
+      return this.getLivePlaybackOnce(assetId);
+    }
+  }
+
+  private async getLivePlaybackOnce(assetId: number): Promise<KalturaPlaybackSource[]> {
     const result = await this.postApi<KalturaPlaybackContext>(
       "/api_v3/service/asset/action/getPlaybackContext",
       {
@@ -525,6 +621,44 @@ export class KalturaOttClient {
     return result.sources || [];
   }
 
+  /**
+   * Turn a Kaltura `playManifest` source URL into the fully playable stream
+   * link. The playManifest URL wraps the signed livetv play request
+   * (`tokenizedUrl/<base64>/ks/<KS>/a.m3u8`); following its redirects
+   * (playManifest → livetv → signed CDN) yields the playable URL. When the
+   * livetv/CDN hop cannot be reached from this network, fall back to the
+   * decoded signed play-request URL, which a player can resolve itself.
+   */
+  async resolveStreamLink(sourceUrl: string): Promise<ResolvedStreamLink> {
+    const playRequestUrl = decodePlayRequestUrl(sourceUrl);
+    const params = parsePlayRequestParams(playRequestUrl);
+    let playableUrl = playRequestUrl || sourceUrl;
+    let resolved = false;
+    try {
+      const signal =
+        typeof AbortSignal !== "undefined" && "timeout" in AbortSignal
+          ? AbortSignal.timeout(15_000)
+          : undefined;
+      const res = await this.request.request(sourceUrl, {
+        headers: { "User-Agent": this.preset.userAgent },
+        signal,
+      });
+      if (res.statusCode === 200 && res.url && res.body.trimStart().startsWith("#EXTM3U")) {
+        playableUrl = res.url;
+        resolved = true;
+      }
+    } catch {
+      /* livetv/CDN unreachable from here — keep the signed play request */
+    }
+    return {
+      playableUrl,
+      playRequestUrl,
+      playRequestToken: params.token,
+      playRequestExpires: params.expires,
+      resolved,
+    };
+  }
+
   async getProgramAsset(programId: number): Promise<KalturaOttProgramAsset> {
     const result = await this.postApi<KalturaListResponse>("/api_v3/service/asset/action/list", {
       filter: { objectType: "KalturaAssetFilter", idIn: String(programId) },
@@ -537,6 +671,75 @@ export class KalturaOttClient {
     const asset = result.objects?.[0] as KalturaOttProgramAsset | undefined;
     if (!asset) throw new Error(`Kaltura OTT program ${programId} not found`);
     return asset;
+  }
+}
+
+export interface KalturaPlayRequestParams {
+  token: string | null;
+  expires: number | null;
+  extStartLimit: number | null;
+  smilProfile: string | null;
+}
+
+export interface ResolvedStreamLink {
+  /** Fully playable stream URL (signed CDN URL when resolution succeeded). */
+  playableUrl: string;
+  /** Signed livetv play-request URL decoded from the playManifest wrapper. */
+  playRequestUrl: string | null;
+  /** Per-channel play-request token (the livetv `token=` value). */
+  playRequestToken: string | null;
+  /** Play-request expiry (unix seconds) from the livetv URL. */
+  playRequestExpires: number | null;
+  /** True when playableUrl is the final redirected CDN playlist. */
+  resolved: boolean;
+}
+
+/**
+ * Decode the signed livetv play-request URL wrapped in a Kaltura
+ * playManifest URL: `.../tokenizedUrl/<base64>/ks/<KS>/a.m3u8`.
+ * The base64 segment may itself contain `/`, so capture up to `/ks/`.
+ */
+export function decodePlayRequestUrl(playManifestUrl: string): string | null {
+  const match =
+    playManifestUrl.match(/\/tokenizedUrl\/(.+?)\/ks\//) ||
+    playManifestUrl.match(/\/tokenizedUrl\/([^/?#]+)/);
+  if (!match?.[1]) return null;
+  try {
+    const normalized = match[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
+    const decoded = Buffer.from(padded, "base64").toString("utf8");
+    return /^https?:\/\//i.test(decoded) ? decoded : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Extract the token and its parameters from a livetv play-request URL. */
+export function parsePlayRequestParams(
+  playRequestUrl: string | null,
+): KalturaPlayRequestParams {
+  const empty: KalturaPlayRequestParams = {
+    token: null,
+    expires: null,
+    extStartLimit: null,
+    smilProfile: null,
+  };
+  if (!playRequestUrl) return empty;
+  try {
+    const params = new URL(playRequestUrl).searchParams;
+    const num = (key: string): number | null => {
+      const raw = params.get(key);
+      const value = raw == null ? NaN : Number(raw);
+      return Number.isFinite(value) ? value : null;
+    };
+    return {
+      token: params.get("token"),
+      expires: num("expires"),
+      extStartLimit: num("ext_start_limit"),
+      smilProfile: params.get("smil_profile"),
+    };
+  } catch {
+    return empty;
   }
 }
 

@@ -97,6 +97,14 @@ export class KalturaOttIE extends InfoExtractor {
           default: "",
         },
         {
+          key: "deviceUdid",
+          label: "Household device UDID",
+          type: "string",
+          description:
+            "Optional registered household device UDID to log in as (playback is device-bound); auto-discovered from the account when omitted",
+          default: "",
+        },
+        {
           key: "days",
           label: "EPG days",
           type: "number",
@@ -171,7 +179,11 @@ export class KalturaOttIE extends InfoExtractor {
         "Kaltura OTT username and password must both be supplied.",
       );
     }
-    return { username, password };
+    const deviceUdid =
+      typeof args?.deviceUdid === "string" && args.deviceUdid.trim()
+        ? args.deviceUdid.trim()
+        : undefined;
+    return { username, password, ...(deviceUdid ? { deviceUdid } : {}) };
   }
 
   private epgDays(parsed: ParsedOttUrl, preset: KalturaOttPartnerPreset): number {
@@ -224,11 +236,34 @@ export class KalturaOttIE extends InfoExtractor {
     }
 
     const formats: Format[] = [];
+    let firstPlayRequest: {
+      url: string | null;
+      token: string | null;
+      expires: number | null;
+    } | null = null;
     for (const source of sources) {
       if (!source.url) continue;
       const type = (source.type || source.format || "").toUpperCase();
       if (type.includes("DASH") || source.url.includes(".mpd")) {
         formats.push(dashFormat(source.url, `dash-${formats.length + 1}`));
+        continue;
+      }
+      // Authenticated Cellcom-style playback returns a Kaltura playManifest
+      // wrapper — resolve it to the fully playable stream link (signed CDN
+      // URL when reachable, otherwise the signed livetv play request).
+      if (/\/playManifest\/|tokenizedUrl/i.test(source.url)) {
+        const resolved = await client.resolveStreamLink(source.url);
+        const format = hlsFormat(resolved.playableUrl, `hls-${formats.length + 1}`);
+        format.play_request_url = resolved.playRequestUrl;
+        format.play_request_token = resolved.playRequestToken;
+        format.play_request_expires = resolved.playRequestExpires;
+        format.stream_resolved = resolved.resolved;
+        formats.push(format);
+        firstPlayRequest ??= {
+          url: resolved.playRequestUrl,
+          token: resolved.playRequestToken,
+          expires: resolved.playRequestExpires,
+        };
       } else {
         formats.push(hlsFormat(source.url, `hls-${formats.length + 1}`));
       }
@@ -267,6 +302,13 @@ export class KalturaOttIE extends InfoExtractor {
       live_status: "is_live",
       uploader: preset.alias,
       formats,
+      ...(firstPlayRequest?.url
+        ? {
+            play_request_url: firstPlayRequest.url,
+            play_request_token: firstPlayRequest.token,
+            play_request_expires: firstPlayRequest.expires,
+          }
+        : {}),
     });
   }
 

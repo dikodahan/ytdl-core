@@ -42,6 +42,8 @@ export interface RequestResult {
     statusCode: number;
     headers: Record<string, string | string[] | undefined>;
     body: string;
+    /** Final URL after any redirects were followed. */
+    url?: string;
     json<T = unknown>(): T;
 }
 export interface RequestClientOptions {

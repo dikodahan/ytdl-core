@@ -77,6 +77,14 @@ export class CellcomIE extends InfoExtractor {
           default: "",
         },
         {
+          key: "deviceUdid",
+          label: "Household device UDID",
+          type: "string",
+          description:
+            "Optional registered household device UDID to log in as (playback is device-bound); auto-discovered from the account when omitted",
+          default: "",
+        },
+        {
           key: "days",
           label: "EPG days",
           type: "number",
@@ -93,7 +101,7 @@ export class CellcomIE extends InfoExtractor {
         },
       ],
       notes:
-        "List with `cellcom:channels`. Extract with `cellcom:live:{id}`. Check Force Android TV to discover TV-only lineup IDs.",
+        "List with `cellcom:channels`. Extract with `cellcom:live:{id}`. Subscriber username/password are supplied per-request only (never stored or embedded) and enable device-bound playback: the provider re-logs in as a registered household device and resolves the playManifest to the playable stream link. Check Force Android TV to discover TV-only lineup IDs.",
       listSupported: true,
     };
   }
@@ -137,6 +145,8 @@ export class CellcomIE extends InfoExtractor {
       platform: fromCellcom.platform ?? fromKaltura.platform ?? extractorArgs.platform,
       username: fromCellcom.username ?? fromKaltura.username ?? extractorArgs.username,
       password: fromCellcom.password ?? fromKaltura.password ?? extractorArgs.password,
+      deviceUdid:
+        fromCellcom.deviceUdid ?? fromKaltura.deviceUdid ?? extractorArgs.deviceUdid,
     };
 
     const params: YoutubeDLParams = {

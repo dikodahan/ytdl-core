@@ -4,10 +4,24 @@ export interface KalturaOttSession {
     ks: string;
     sessionId: string | null;
     expiry: number | null;
+    /** UDID this session was logged in with. */
+    udid?: string;
+    /** Household device name, when the session was re-logged in as a registered device. */
+    deviceName?: string | null;
+}
+export interface KalturaOttHouseholdDevice {
+    udid?: string;
+    name?: string;
+    brandId?: number;
+    deviceFamilyId?: number;
+    status?: string;
+    state?: string;
 }
 export interface KalturaOttCredentials {
     username: string;
     password: string;
+    /** Optional: force login with this registered household device UDID. */
+    deviceUdid?: string;
 }
 export declare class KalturaOttAuthenticationError extends Error {
     readonly code = "KALTURA_OTT_AUTHENTICATION_FAILED";
@@ -67,6 +81,10 @@ export declare class KalturaOttClient {
     private session;
     constructor(request: RequestClient, preset: KalturaOttPartnerPreset, credentials?: KalturaOttCredentials | undefined);
     ensureSession(): Promise<KalturaOttSession>;
+    /** Drop the cached session (e.g. after a KS-expired response). */
+    invalidateSession(): void;
+    private listHouseholdDevices;
+    private loginWithUdid;
     private serveByDevice;
     private apiBase;
     private postApi;
@@ -87,8 +105,44 @@ export declare class KalturaOttClient {
     private fetchEpgSearch;
     getProgramPlayback(programId: number, context?: "CATCHUP" | "START_OVER" | "PLAYBACK"): Promise<KalturaPlaybackSource[]>;
     getLivePlayback(assetId: number): Promise<KalturaPlaybackSource[]>;
+    private getLivePlaybackOnce;
+    /**
+     * Turn a Kaltura `playManifest` source URL into the fully playable stream
+     * link. The playManifest URL wraps the signed livetv play request
+     * (`tokenizedUrl/<base64>/ks/<KS>/a.m3u8`); following its redirects
+     * (playManifest → livetv → signed CDN) yields the playable URL. When the
+     * livetv/CDN hop cannot be reached from this network, fall back to the
+     * decoded signed play-request URL, which a player can resolve itself.
+     */
+    resolveStreamLink(sourceUrl: string): Promise<ResolvedStreamLink>;
     getProgramAsset(programId: number): Promise<KalturaOttProgramAsset>;
 }
+export interface KalturaPlayRequestParams {
+    token: string | null;
+    expires: number | null;
+    extStartLimit: number | null;
+    smilProfile: string | null;
+}
+export interface ResolvedStreamLink {
+    /** Fully playable stream URL (signed CDN URL when resolution succeeded). */
+    playableUrl: string;
+    /** Signed livetv play-request URL decoded from the playManifest wrapper. */
+    playRequestUrl: string | null;
+    /** Per-channel play-request token (the livetv `token=` value). */
+    playRequestToken: string | null;
+    /** Play-request expiry (unix seconds) from the livetv URL. */
+    playRequestExpires: number | null;
+    /** True when playableUrl is the final redirected CDN playlist. */
+    resolved: boolean;
+}
+/**
+ * Decode the signed livetv play-request URL wrapped in a Kaltura
+ * playManifest URL: `.../tokenizedUrl/<base64>/ks/<KS>/a.m3u8`.
+ * The base64 segment may itself contain `/`, so capture up to `/ks/`.
+ */
+export declare function decodePlayRequestUrl(playManifestUrl: string): string | null;
+/** Extract the token and its parameters from a livetv play-request URL. */
+export declare function parsePlayRequestParams(playRequestUrl: string | null): KalturaPlayRequestParams;
 export declare function pickChannelLogo(images: KalturaOttImage[] | undefined): string | null;
 export declare function pickStreamFormats(files: KalturaOttMediaFile[] | undefined): {
     hls: string | null;

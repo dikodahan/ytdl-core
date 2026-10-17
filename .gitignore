@@ -10,3 +10,5 @@ npm-shrinkwrap.json
 legacy/
 data/
 .ytdl-core/
+.env
+test/scripts

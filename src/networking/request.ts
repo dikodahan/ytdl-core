@@ -179,6 +179,8 @@ export interface RequestResult {
   statusCode: number;
   headers: Record<string, string | string[] | undefined>;
   body: string;
+  /** Final URL after any redirects were followed. */
+  url?: string;
   json<T = unknown>(): T;
 }
 
@@ -298,11 +300,11 @@ export class RequestClient {
         result.statusCode === 303 ||
         result.statusCode === 307 ||
         result.statusCode === 308;
-      if (!redirect || hop === maxRedirects) return result;
+      if (!redirect || hop === maxRedirects) return { ...result, url: fullUrl };
 
       const location = result.headers.location;
       const loc = Array.isArray(location) ? location[0] : location;
-      if (!loc) return result;
+      if (!loc) return { ...result, url: fullUrl };
 
       fullUrl = new URL(loc, fullUrl).toString();
       // Convert POST → GET on classic redirects (except 307/308).

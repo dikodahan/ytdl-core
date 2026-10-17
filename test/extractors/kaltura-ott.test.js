@@ -7,6 +7,9 @@ const { resolveExtractor, resolveListExtractor } = require("../../lib/core/regis
 const {
   KalturaOttAuthenticationError,
   KalturaOttSubscriptionRequiredError,
+  KalturaOttClient,
+  decodePlayRequestUrl,
+  parsePlayRequestParams,
   pickChannelLogo,
   pickStreamFormats,
 } = require("../../lib/extractor/kaltura-ott/client");
@@ -70,6 +73,134 @@ describe("kaltura-ott helpers", () => {
     ]);
     assert.match(hls, /\.m3u8$/);
     assert.match(dash, /\.mpd$/);
+  });
+});
+
+describe("cellcom authenticated playback (stubbed, fake credentials only)", () => {
+  const playRequestUrl =
+    "http://livetv-or.example:8080/ngx/78/srt_test/index.m3u8?smil_profile=default" +
+    "&token=0123456789abcdef0123456789abcdef&expires=1792341694&ext_start_limit=1792255414";
+  const playManifestUrl =
+    "https://api.example/api_v3/service/assetFile/action/playManifest/partnerId/3197" +
+    `/assetId/123/assetType/media/assetFileId/9/contextType/PLAYBACK/tokenizedUrl/${Buffer.from(playRequestUrl).toString("base64")}/ks/ks-for-device-1/a.m3u8`;
+  const cdnUrl = "http://stm.example/_cat/test-jwt/ngx/78/srt_test/index.m3u8?smil_profile=fiber";
+
+  function makeFakeRequest() {
+    const calls = { logins: [], playbackKs: [] };
+    const expiry = Math.floor(Date.now() / 1000) + 3600;
+    const result = body => ({
+      statusCode: 200,
+      headers: {},
+      body: typeof body === "string" ? body : JSON.stringify(body),
+      json() {
+        return typeof body === "string" ? JSON.parse(body) : body;
+      },
+    });
+    return {
+      calls,
+      async request(url, options = {}) {
+        if (url.includes("/action/login")) {
+          const body = JSON.parse(options.body);
+          calls.logins.push(body);
+          return result({
+            result: { loginSession: { ks: `ks-for-${body.udid}`, expiry } },
+          });
+        }
+        if (url.includes("/playManifest/")) {
+          return {
+            statusCode: 200,
+            headers: {},
+            url: cdnUrl,
+            body: "#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1\nv.m3u8\n",
+            json() {
+              throw new Error("not json");
+            },
+          };
+        }
+        throw new Error(`unexpected request ${url}`);
+      },
+      async json(url, options = {}) {
+        const body = options.body ? JSON.parse(options.body) : {};
+        if (url.includes("configurations/action/serveByDevice")) return {};
+        if (url.includes("householddevice/action/list")) {
+          const preset = resolvePartnerPreset("cellcom");
+          return {
+            result: {
+              objects: [
+                { udid: preset.udid, name: "bootstrap", status: "ACTIVATED" },
+                { udid: "device-1", name: "Fake Phone", status: "ACTIVATED" },
+              ],
+            },
+          };
+        }
+        if (url.includes("asset/action/getPlaybackContext")) {
+          calls.playbackKs.push(body.ks);
+          if (body.ks !== "ks-for-device-1") {
+            return { result: { error: { code: "1003", message: "Device not in household" } } };
+          }
+          return { result: { sources: [{ type: "HLS", url: playManifestUrl }] } };
+        }
+        if (url.includes("asset/action/get")) {
+          return {
+            result: {
+              id: 123,
+              name: "Test Channel",
+              mediaFiles: [],
+              metas: { ChannelNumber: { value: 7 } },
+            },
+          };
+        }
+        throw new Error(`unexpected json ${url}`);
+      },
+    };
+  }
+
+  it("decodes the livetv play request and its token parameters", () => {
+    assert.equal(decodePlayRequestUrl(playManifestUrl), playRequestUrl);
+    assert.deepEqual(parsePlayRequestParams(playRequestUrl), {
+      token: "0123456789abcdef0123456789abcdef",
+      expires: 1792341694,
+      extStartLimit: 1792255414,
+      smilProfile: "default",
+    });
+  });
+
+  it("re-logs in as a registered household device for playback", async () => {
+    const fake = makeFakeRequest();
+    const preset = { ...resolvePartnerPreset("cellcom") };
+    const client = new KalturaOttClient(fake, preset, {
+      username: "fake-user",
+      password: "fake-pass",
+    });
+    const session = await client.ensureSession();
+    assert.equal(session.udid, "device-1");
+    const sources = await client.getLivePlayback(123);
+    assert.equal(sources[0].url, playManifestUrl);
+    assert.ok(fake.calls.playbackKs.every(ks => ks === "ks-for-device-1"));
+  });
+
+  it("extracts the resolved playable stream link with per-request auth params", async () => {
+    const { CellcomIE } = require("../../lib/extractor/cellcom/cellcom");
+    const optionKeys = CellcomIE.getInfo().options.map(o => o.key);
+    assert.ok(optionKeys.includes("username"));
+    assert.ok(optionKeys.includes("password"));
+    assert.ok(optionKeys.includes("deviceUdid"));
+
+    const fake = makeFakeRequest();
+    const ie = new CellcomIE(
+      { extractorArgs: { username: "fake-user", password: "fake-pass" } },
+      fake,
+    );
+    const info = await ie.extract("cellcom:live:123");
+    assert.equal(info.extractor, "cellcom");
+    const hls = info.formats.find(f => f.isHLS);
+    assert.equal(hls.url, cdnUrl);
+    assert.equal(hls.play_request_token, "0123456789abcdef0123456789abcdef");
+    assert.equal(info.play_request_url, playRequestUrl);
+    assert.equal(info.play_request_expires, 1792341694);
+    // Auth params are used for login only and never leak into the result.
+    assert.ok(fake.calls.logins.some(b => b.username === "fake-user"));
+    assert.ok(!JSON.stringify(info).includes("fake-pass"));
   });
 });
 
